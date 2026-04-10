@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="ResQ">
 <title>ResQ — Emergency Safety App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -30,27 +30,22 @@
   --text:      #0f172a;
   --text2:     #475569;
   --text3:     #94a3b8;
-  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
   --shadow:    0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-  /* Brand - Professional Navy & Emerald */
-  --red:       #1e293b; /* Replaced red with Slate/Navy for headers */
-  --red-soft:  #f1f5f9;
-  --red-mid:   #e2e8f0;
-  --brand:     #2563eb; /* Primary Blue */
-  --brand-soft:#eff6ff;
+  /* Brand */
+  --red:       #4f46e5;
+  --red-soft:  #eef2ff;
+  --red-mid:   #c7d2fe;
   --orange:    #f59e0b;
-  --green:     #10b981; /* Emerald Green for Safety */
+  --green:     #10b981;
   --green-soft:#ecfdf5;
   --blue:      #3b82f6;
   --blue-soft: #eff6ff;
   --yellow:    #f59e0b;
   --yellow-soft:#fffbeb;
-  --purple:    #6366f1;
+  --purple:    #8b5cf6;
   --teal:      #14b8a6;
-  /* Special SOS Red - Keep but refine */
-  --sos:       #dc2626;
-  --sos-soft:  #fef2f2;
   /* Nav */
   --nav-bg:    #ffffff;
   --nav-border:#e2e8f0;
@@ -60,19 +55,19 @@
   --bg2:       #1e293b;
   --bg3:       #334155;
   --card:      #1e293b;
-  --card2:     #334155;
+  --card2:     #1e293b;
   --border:    #334155;
   --border2:   #475569;
   --text:      #f8fafc;
   --text2:     #94a3b8;
   --text3:     #64748b;
-  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.5);
-  --shadow:    0 10px 15px -3px rgba(0,0,0,0.5);
-  --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.6);
-  --red-soft:  rgba(30,41,59,.3);
-  --red-mid:   rgba(30,41,59,.5);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
+  --shadow:    0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
+  --red-soft:  rgba(79,70,229,.12);
+  --red-mid:   rgba(79,70,229,.2);
   --green-soft:rgba(16,185,129,.1);
-  --blue-soft: rgba(37,99,235,.12);
+  --blue-soft: rgba(59,130,246,.12);
   --yellow-soft:rgba(245,158,11,.12);
   --nav-bg:    #1e293b;
   --nav-border:#334155;
@@ -89,7 +84,7 @@ body {
   min-height: -webkit-fill-available;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   overflow: hidden;
@@ -138,13 +133,13 @@ body {
 .logo-mark {
   width: 34px;
   height: 34px;
-  background: var(--brand);
+  background: var(--red);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(37,99,235,.3);
+  box-shadow: 0 4px 12px rgba(232,25,44,.3);
 }
 .logo-mark svg { width: 18px; height: 18px; fill: white; }
 .logo-name {
@@ -152,7 +147,7 @@ body {
   font-weight: 900;
   font-size: 20px;
   letter-spacing: -0.5px;
-  color: var(--text);
+  color: var(--red);
 }
 .logo-name span { color: var(--text); }
 .header-right {
@@ -370,24 +365,24 @@ body {
 
 /* Buttons */
 .btn { padding: 10px 18px; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.btn-primary { background: var(--brand); color: white; box-shadow: 0 4px 14px rgba(37,99,235,.25); }
+.btn-primary { background: var(--red); color: white; box-shadow: 0 4px 14px rgba(232,25,44,.25); }
 .btn-primary:active { transform: scale(.97); }
 .btn-secondary { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
-.btn-secondary:hover { border-color: var(--brand); color: var(--brand); }
+.btn-secondary:hover { border-color: var(--red); color: var(--red); }
 .btn-green { background: var(--green); color: white; }
 .btn-blue { background: var(--blue); color: white; }
-.btn-danger { background: var(--sos); color: white; box-shadow: 0 4px 14px rgba(220,38,38,.2); }
-.btn-outline-red { background: var(--sos-soft); border: 1.5px solid var(--sos); color: var(--sos); }
+.btn-danger { background: var(--red); color: white; }
+.btn-outline-red { background: var(--red-soft); border: 1.5px solid var(--red); color: var(--red); }
 .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
 .btn-w { width: 100%; }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
 
 /* Badges */
 .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
-.badge-red { background: var(--sos-soft); color: var(--sos); border: 1px solid var(--sos); }
-.badge-yellow { background: var(--yellow-soft); color: var(--yellow); border: 1px solid rgba(245,158,11,.25); }
-.badge-green { background: var(--green-soft); color: var(--green); border: 1px solid rgba(16,185,129,.25); }
-.badge-blue { background: var(--blue-soft); color: var(--blue); border: 1px solid rgba(59,130,246,.2); }
+.badge-red { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-mid); }
+.badge-yellow { background: var(--yellow-soft); color: var(--yellow); border: 1px solid rgba(217,119,6,.25); }
+.badge-green { background: var(--green-soft); color: var(--green); border: 1px solid rgba(12,172,106,.25); }
+.badge-blue { background: var(--blue-soft); color: var(--blue); border: 1px solid rgba(37,99,235,.2); }
 
 /* Form elements */
 .field { margin-bottom: 12px; }
@@ -406,8 +401,8 @@ body {
   -webkit-appearance: none;
 }
 .input:focus, .select:focus, .textarea:focus {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(232,25,44,.1);
   background: var(--card);
 }
 .textarea { min-height: 72px; resize: vertical; }
@@ -418,12 +413,12 @@ body {
 /* Tabs */
 .tabs { display: flex; gap: 3px; background: var(--bg3); border-radius: 10px; padding: 3px; margin-bottom: 14px; }
 .tab { flex: 1; padding: 8px; text-align: center; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .18s; color: var(--text3); border: none; background: transparent; }
-.tab.on { background: var(--card); color: var(--brand); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.tab.on { background: var(--card); color: var(--red); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 
 /* Search */
 .search-wrap { position: relative; margin-bottom: 12px; }
 .search-input { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 12px 9px 36px; color: var(--text); font-family: inherit; font-size: 13px; width: 100%; outline: none; transition: all .15s; }
-.search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.search-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(232,25,44,.1); }
 .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
 .search-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -432,13 +427,13 @@ body {
 .chip-row::-webkit-scrollbar { display: none; }
 .chip { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--card); color: var(--text3); transition: all .15s; white-space: nowrap; flex-shrink: 0; }
 .chip:active { transform: scale(.96); }
-.chip.on { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
+.chip.on { border-color: var(--red); background: var(--red-soft); color: var(--red); }
 
 /* Toast */
 .toast-wrap { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; width: 90%; max-width: 380px; }
 .toast { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12px; animation: tslide .25s ease; pointer-events: all; display: flex; align-items: center; gap: 9px; box-shadow: var(--shadow-lg); font-weight: 500; }
 .toast-s { border-left: 3px solid var(--green); }
-.toast-e { border-left: 3px solid var(--sos); }
+.toast-e { border-left: 3px solid var(--red); }
 .toast-w { border-left: 3px solid var(--yellow); }
 @keyframes tslide { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
 
@@ -632,7 +627,7 @@ body {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--brand), var(--teal));
+  background: linear-gradient(135deg, var(--red), var(--orange));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1106,7 +1101,7 @@ body {
         <div class="emer-card" onclick="window.open('tel:100')"><div class="emer-num" style="color:var(--blue)">100</div><div class="emer-label">Police</div></div>
         <div class="emer-card" onclick="window.open('tel:101')"><div class="emer-num" style="color:var(--orange)">101</div><div class="emer-label">Fire</div></div>
         <div class="emer-card" onclick="window.open('tel:108')"><div class="emer-num" style="color:var(--green)">108</div><div class="emer-label">Ambulance</div></div>
-        <div class="emer-card" onclick="window.open('tel:112')" style="background:var(--sos-soft);border-color:var(--sos)"><div class="emer-num" style="color:var(--sos)">112</div><div class="emer-label" style="color:var(--sos)">SOS</div></div>
+        <div class="emer-card" onclick="window.open('tel:112')" style="background:var(--red-soft);border-color:var(--red-mid)"><div class="emer-num" style="color:var(--red)">112</div><div class="emer-label" style="color:var(--red)">SOS</div></div>
       </div>
     </div>
 
@@ -1293,7 +1288,7 @@ body {
 // STATE & CONFIG
 // ══════════════════════════════════════════════
 const API = `${window.location.origin}/api`;
-const SID = 'android_user';
+const SID = (() => { let s = localStorage.getItem('resq_sid'); if (!s) { s = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2); localStorage.setItem('resq_sid', s); } return s; })();
 let loc = { lat: 18.5204, lng: 73.8567 };
 let MAP = null, userMark = null, incMarkers = [], mapFilt = 'all';
 let ckIv = null, ckStart = null, ckDur = null;
@@ -1527,27 +1522,7 @@ function initMap() {
 
   updateUM();
   reloadMap();
-  
-  MAP.on('click', e => {
-    // If we are in "Report" page, set reporting coordinates
-    if (currPg === 'report') {
-      $('r-lat').value = e.latlng.lat.toFixed(6);
-      $('r-lng').value = e.latlng.lng.toFixed(6);
-      $('r-addr').value = `Map Point: ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
-      toast('Reporting location set from map', 'success');
-    }
-    // If we are in "Routes" page, set destination coordinates
-    else if (currPg === 'routes') {
-      $('rt-tlat').value = e.latlng.lat.toFixed(6);
-      $('rt-tlng').value = e.latlng.lng.toFixed(6);
-      $('rt-to').value = `Selected Destination (${e.latlng.lat.toFixed(4)})`;
-      toast('Destination set from map', 'success');
-    }
-    else {
-      $('slide-panel').classList.remove('open');
-    }
-  });
-
+  MAP.on('click', () => $('slide-panel').classList.remove('open'));
   MAP.on('locationfound', e => {
     loc = { lat: e.latlng.lat, lng: e.latlng.lng };
     updateUM();
@@ -1734,11 +1709,8 @@ function fSvc(t, el) {
 // ══════════════════════════════════════════════
 // SOS CONTACTS
 // ══════════════════════════════════════════════
-async function loadCts() {
-  const res = await GET('/sos-contacts?session=' + SID);
-  const cts = res?.data ?? LDB.g('cts', []);
-  if (res?.data) LDB.s('cts', res.data);
-
+function loadCts() {
+  const cts = LDB.g('cts', []);
   const el = $('cts-list');
   if (!cts.length) {
     el.innerHTML = `<div class="empty" style="padding:16px"><div class="empty-title">No contacts yet</div><div class="empty-sub">Add emergency contacts who will receive your SOS alert</div></div>`;
@@ -1747,7 +1719,7 @@ async function loadCts() {
   el.innerHTML = cts.map(c => `
     <div class="contact-item">
       <div class="contact-avatar">${c.name[0].toUpperCase()}</div>
-      <div><div class="contact-name">${c.name}</div><div class="contact-phone">${c.phone} · ${c.relationship || c.rel}</div></div>
+      <div><div class="contact-name">${c.name}</div><div class="contact-phone">${c.phone} · ${c.rel}</div></div>
       <div class="contact-actions">
         <a href="tel:${c.phone.replace(/[^0-9+]/g, '')}" class="btn btn-secondary btn-sm">Call</a>
         <button class="btn btn-secondary btn-sm" onclick="delCt('${c.id}')">Remove</button>
@@ -1763,11 +1735,9 @@ function toggleAddCt() {
 async function saveCt() {
   const n = $('ct-n').value.trim(), p = $('ct-p').value.trim();
   if (!n || !p) return toast('Name and phone are required', 'error');
-  const ct = { id: uid(), name: n, phone: p, relationship: $('ct-r').value, session: SID, created_at: Date.now() };
-  await POST('/sos-contacts', ct);
-  
-  const cts = LDB.g('cts', []); cts.push({ ...ct, rel: ct.relationship }); LDB.s('cts', cts);
-  
+  const ct = { id: uid(), name: n, phone: p, rel: $('ct-r').value, created_at: Date.now() };
+  await POST('/sos-contacts', { ...ct, session: SID });
+  const cts = LDB.g('cts', []); cts.push(ct); LDB.s('cts', cts);
   $('ct-n').value = ''; $('ct-p').value = '';
   toggleAddCt(); loadCts();
   toast(`${n} added as emergency contact`, 'success');
@@ -1855,18 +1825,13 @@ function closeSOS() { $('sos-overlay').classList.remove('open'); }
 async function triggerSOS() {
   const btn = $('sos-fire');
   btn.disabled = true; btn.textContent = 'Sending ResQ SOS…';
-  const res = await POST('/sos/trigger', { lat: loc.lat, lng: loc.lng, message: $('sos-msg').value || 'I need help!', session: SID });
-  const count = res?.data?.contacts_notified ?? 0;
-  
+  await POST('/sos/trigger', { lat: loc.lat, lng: loc.lng, message: $('sos-msg').value || 'I need help!', session: SID });
+  const cts = LDB.g('cts', []);
   setTimeout(() => {
     closeSOS();
-    if (count > 0) {
-      toast(`ResQ SOS Alert dispatched to ${count} contacts via SMS`, 'success', 8000);
-    } else {
-      toast('SOS triggered, but no contacts found. Call 112 immediately!', 'error', 8000);
-    }
+    toast(cts.length ? `ResQ SOS alert sent to ${cts.length} contacts with your live location` : 'ResQ SOS triggered — no contacts saved. Call 112 immediately!', cts.length ? 'error' : 'warn', 7000);
     btn.disabled = false; btn.textContent = 'Send ResQ SOS Alert Now';
-  }, 1200);
+  }, 1400);
 }
 
 // ══════════════════════════════════════════════
@@ -1931,16 +1896,10 @@ async function submitMissing() {
 }
 
 async function markFound(id) {
-  const res = await POST('/missing-persons/' + id + '/found');
-  if (res?.success) {
-    const arr = LDB.g('miss', []);
-    const p = arr.find(x => x.id === id);
-    if (p) p.status = 'found';
-    LDB.s('miss', arr);
-    toast('Person marked as found and safe', 'success', 5000);
-    loadMissing();
-    loadDash(); // Refresh stats on home page
-  }
+  await PATCH('/missing-persons/' + id + '/found');
+  const arr = LDB.g('miss', []); const p = arr.find(x => x.id === id); if (p) p.status = 'found'; LDB.s('miss', arr);
+  loadMissing();
+  toast('Person marked as found and safe', 'success', 5000);
 }
 
 // ══════════════════════════════════════════════
@@ -1963,52 +1922,43 @@ async function planRoute() {
   const tLat = parseFloat($('rt-tlat').value);
   const tLng = parseFloat($('rt-tlng').value);
   const tAddr = $('rt-to').value;
-  
-  if (!tAddr && (isNaN(tLat) || isNaN(tLng))) return toast('Tap the map to select destination or enter address', 'error');
-  
-  const dLat = isNaN(tLat) ? (loc.lat + 0.01) : tLat;
-  const dLng = isNaN(tLng) ? (loc.lng + 0.01) : tLng;
+  if (!tAddr && (!tLat || !tLng)) return toast('Enter a destination', 'error');
+  const dLat = tLat || (loc.lat + (Math.random() - .5) * .025);
+  const dLng = tLng || (loc.lng + (Math.random() - .5) * .025);
 
   const btn = $('rt-btn');
   btn.disabled = true; btn.textContent = 'Analysing route…';
 
   const res = await POST('/safe-routes', { from_lat: fLat, from_lng: fLng, to_lat: dLat, to_lng: dLng, mode: rtMode, from_address: $('rt-from').value, to_address: tAddr, session: SID });
   let score, rec, nearby, distKm, eta;
-  
   if (res?.data) {
-    score = res.data.safety_score; 
-    rec = res.data.recommendation;
-    nearby = res.data.incidents_nearby; 
-    distKm = res.data.distance_km; 
-    eta = res.data.estimated_minutes;
+    score = res.data.safety_score; rec = res.data.recommendation;
+    nearby = res.data.incidents_nearby; distKm = res.data.distance_km; eta = res.data.estimated_minutes;
   } else {
-    // Local fallback logic
-    const incs = LDB.g('incs', []).filter(i => Date.now() - i.created_at < 43200000);
-    nearby = incs.length;
-    score = 85; rec = "Route appears safe"; distKm = 2.5; eta = 15;
+    const incs = getIncs().filter(i => Date.now() - i.created_at < 43200000);
+    const mLat = (fLat + dLat) / 2, mLng = (fLng + dLng) / 2;
+    let danger = 0, nl = [];
+    incs.forEach(i => { const d = haversine(mLat, mLng, i.lat, i.lng); if (d < 2) { danger += ({ high: 3, medium: 2, low: 1 }[i.severity] || 1) * Math.exp(-d * 2); nl.push(i); } });
+    score = Math.round(Math.max(0, Math.min(100, 100 - danger * 15)));
+    nearby = nl.length; distKm = haversine(fLat, fLng, dLat, dLng).toFixed(2);
+    eta = Math.round((distKm / ({ walking: 5, cycling: 15, driving: 40 }[rtMode] || 5)) * 60);
+    rec = score > 70 ? 'Route appears safe based on recent ResQ community reports.' : score > 40 ? 'Some incidents reported nearby. Stay on busy, well-lit streets.' : 'Multiple safety incidents on this route. ResQ recommends an alternative path.';
+    const routes = LDB.g('rts', []); routes.unshift({ id: uid(), from: $('rt-from').value, to: tAddr, score, nearby, distKm, eta, mode: rtMode, created_at: Date.now() }); if (routes.length > 8) routes.pop(); LDB.s('rts', routes);
   }
 
   btn.disabled = false; btn.textContent = 'Analyse Route Safety';
   $('rt-result').style.display = 'block';
   const sEl = $('rt-score');
-  sEl.textContent = Math.round(score) + '/100';
+  sEl.textContent = score + '/100';
   sEl.style.color = score > 70 ? 'var(--green)' : score > 40 ? 'var(--yellow)' : 'var(--red)';
   $('rt-dist').textContent = `${distKm} km · ~${eta} min (${rtMode})`;
-  
   const fill = $('rt-fill');
   fill.style.width = score + '%';
   fill.style.background = score > 70 ? 'linear-gradient(90deg, #059669, #0cac6a)' : score > 40 ? 'linear-gradient(90deg, #b45309, #d97706)' : 'linear-gradient(90deg, #b91c1c, #dc2626)';
-  
   $('rt-badge').innerHTML = score > 70 ? '<span class="badge badge-green">Safe Route</span>' : score > 40 ? '<span class="badge badge-yellow">Use Caution</span>' : '<span class="badge badge-red">Risky Route</span>';
   $('rt-rec').textContent = rec;
-  $('rt-nearby').textContent = `${nearby} incident${nearby !== 1 ? 's' : ''} detected nearby.`;
-  
-  // Update link to trigger Android Intent (handled in MainActivity)
-  $('rt-gmaps').onclick = (e) => {
-    e.preventDefault();
-    window.location.href = `https://www.google.com/maps/dir/${fLat},${fLng}/${dLat},${dLng}/`;
-  };
-  
+  $('rt-nearby').textContent = `${nearby} incident${nearby !== 1 ? 's' : ''} detected within 2km of this route in the last 12 hours.`;
+  $('rt-gmaps').href = `https://www.google.com/maps/dir/${fLat},${fLng}/${dLat},${dLng}/`;
   loadRtData();
 }
 
@@ -2100,7 +2050,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initLoc();
   getIncs(); getSvcs();
   loadDash();
-  loadCts();
   registerSW();
 
   // Close SOS on overlay tap

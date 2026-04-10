@@ -22,10 +22,9 @@ android {
         }
 
         python {
-            version '3.10'
+            buildPython "C:/Users/athar/AppData/Local/Programs/Python/Python312/python.exe"
+            version '3.11'
             pip {
-                // Remove pinning to allow pip to find latest compatible versions
-                // NOTE: Active internet connection required for initial build
                 install 'flask'
                 install 'werkzeug'
             }

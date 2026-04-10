@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="ResQ">
 <title>ResQ — Emergency Safety App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -20,57 +20,57 @@
 ═══════════════════════════════════════════════ */
 :root {
   /* Light theme */
-  --bg:        #f5f6fa;
+  --bg:        #f8fafc;
   --bg2:       #ffffff;
-  --bg3:       #f0f1f6;
+  --bg3:       #f1f5f9;
   --card:      #ffffff;
-  --card2:     #f8f9fc;
-  --border:    #e4e6ef;
-  --border2:   #d0d3e4;
-  --text:      #0f1729;
-  --text2:     #4a5478;
-  --text3:     #8c94b3;
-  --shadow-sm: 0 1px 3px rgba(15,23,41,.06), 0 1px 2px rgba(15,23,41,.04);
-  --shadow:    0 4px 16px rgba(15,23,41,.08), 0 2px 4px rgba(15,23,41,.04);
-  --shadow-lg: 0 12px 40px rgba(15,23,41,.12), 0 4px 12px rgba(15,23,41,.06);
+  --card2:     #f8fafc;
+  --border:    #e2e8f0;
+  --border2:   #cbd5e1;
+  --text:      #0f172a;
+  --text2:     #475569;
+  --text3:     #94a3b8;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow:    0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
   /* Brand */
-  --red:       #e8192c;
-  --red-soft:  #fff0f1;
-  --red-mid:   #ffe0e3;
-  --orange:    #f5620a;
-  --green:     #0cac6a;
-  --green-soft:#e8faf2;
-  --blue:      #2563eb;
-  --blue-soft: #eff4ff;
-  --yellow:    #d97706;
+  --red:       #4f46e5;
+  --red-soft:  #eef2ff;
+  --red-mid:   #c7d2fe;
+  --orange:    #f59e0b;
+  --green:     #10b981;
+  --green-soft:#ecfdf5;
+  --blue:      #3b82f6;
+  --blue-soft: #eff6ff;
+  --yellow:    #f59e0b;
   --yellow-soft:#fffbeb;
-  --purple:    #7c3aed;
-  --teal:      #0891b2;
+  --purple:    #8b5cf6;
+  --teal:      #14b8a6;
   /* Nav */
   --nav-bg:    #ffffff;
-  --nav-border:#e4e6ef;
+  --nav-border:#e2e8f0;
 }
 [data-theme="dark"] {
-  --bg:        #0c0e16;
-  --bg2:       #121520;
-  --bg3:       #181c28;
-  --card:      #1a1f2e;
-  --card2:     #1f2538;
-  --border:    #252d42;
-  --border2:   #2f3a55;
-  --text:      #eaeef8;
-  --text2:     #8a96b8;
-  --text3:     #505d7a;
+  --bg:        #0f172a;
+  --bg2:       #1e293b;
+  --bg3:       #334155;
+  --card:      #1e293b;
+  --card2:     #1e293b;
+  --border:    #334155;
+  --border2:   #475569;
+  --text:      #f8fafc;
+  --text2:     #94a3b8;
+  --text3:     #64748b;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
   --shadow:    0 4px 16px rgba(0,0,0,.4);
   --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
-  --red-soft:  rgba(232,25,44,.12);
-  --red-mid:   rgba(232,25,44,.2);
-  --green-soft:rgba(12,172,106,.1);
-  --blue-soft: rgba(37,99,235,.12);
-  --yellow-soft:rgba(217,119,6,.12);
-  --nav-bg:    #121520;
-  --nav-border:#252d42;
+  --red-soft:  rgba(79,70,229,.12);
+  --red-mid:   rgba(79,70,229,.2);
+  --green-soft:rgba(16,185,129,.1);
+  --blue-soft: rgba(59,130,246,.12);
+  --yellow-soft:rgba(245,158,11,.12);
+  --nav-bg:    #1e293b;
+  --nav-border:#334155;
 }
 
 /* ═══════════════════════════════════════════════
@@ -84,7 +84,7 @@ body {
   min-height: -webkit-fill-available;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   overflow: hidden;
