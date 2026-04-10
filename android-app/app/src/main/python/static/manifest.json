@@ -1,0 +1,15 @@
+{
+  "name": "ResQ",
+  "short_name": "ResQ",
+  "description": "Citizen safety and emergency management app.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#e8192c",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/resq-icon.svg", "sizes": "192x192", "type": "image/svg+xml" },
+    { "src": "/resq-icon.svg", "sizes": "512x512", "type": "image/svg+xml" }
+  ]
+}

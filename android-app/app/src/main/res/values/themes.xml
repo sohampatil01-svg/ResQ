@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ResQAndroid" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">#1e293b</item>
+        <item name="colorPrimary">#2563eb</item>
+        <item name="colorPrimaryVariant">#1e293b</item>
+        <item name="colorOnPrimary">#ffffff</item>
+        <item name="colorSecondary">#10b981</item>
+        <item name="colorOnSecondary">#ffffff</item>
+    </style>
+</resources>

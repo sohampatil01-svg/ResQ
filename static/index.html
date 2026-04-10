@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff" id="theme-meta">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/resq-icon.svg">
+<meta name="apple-mobile-web-app-title" content="ResQ">
+<title>ResQ — Emergency Safety App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS — LIGHT & DARK
+═══════════════════════════════════════════════ */
+:root {
+  /* Light theme */
+  --bg:        #f5f6fa;
+  --bg2:       #ffffff;
+  --bg3:       #f0f1f6;
+  --card:      #ffffff;
+  --card2:     #f8f9fc;
+  --border:    #e4e6ef;
+  --border2:   #d0d3e4;
+  --text:      #0f1729;
+  --text2:     #4a5478;
+  --text3:     #8c94b3;
+  --shadow-sm: 0 1px 3px rgba(15,23,41,.06), 0 1px 2px rgba(15,23,41,.04);
+  --shadow:    0 4px 16px rgba(15,23,41,.08), 0 2px 4px rgba(15,23,41,.04);
+  --shadow-lg: 0 12px 40px rgba(15,23,41,.12), 0 4px 12px rgba(15,23,41,.06);
+  /* Brand */
+  --red:       #e8192c;
+  --red-soft:  #fff0f1;
+  --red-mid:   #ffe0e3;
+  --orange:    #f5620a;
+  --green:     #0cac6a;
+  --green-soft:#e8faf2;
+  --blue:      #2563eb;
+  --blue-soft: #eff4ff;
+  --yellow:    #d97706;
+  --yellow-soft:#fffbeb;
+  --purple:    #7c3aed;
+  --teal:      #0891b2;
+  /* Nav */
+  --nav-bg:    #ffffff;
+  --nav-border:#e4e6ef;
+}
+[data-theme="dark"] {
+  --bg:        #0c0e16;
+  --bg2:       #121520;
+  --bg3:       #181c28;
+  --card:      #1a1f2e;
+  --card2:     #1f2538;
+  --border:    #252d42;
+  --border2:   #2f3a55;
+  --text:      #eaeef8;
+  --text2:     #8a96b8;
+  --text3:     #505d7a;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
+  --shadow:    0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
+  --red-soft:  rgba(232,25,44,.12);
+  --red-mid:   rgba(232,25,44,.2);
+  --green-soft:rgba(12,172,106,.1);
+  --blue-soft: rgba(37,99,235,.12);
+  --yellow-soft:rgba(217,119,6,.12);
+  --nav-bg:    #121520;
+  --nav-border:#252d42;
+}
+
+/* ═══════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; height: -webkit-fill-available; }
+body {
+  height: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+  transition: background .25s, color .25s;
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE APP SHELL
+═══════════════════════════════════════════════ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: -webkit-fill-available;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── STATUS BAR (simulated on desktop) ── */
+.status-bar {
+  height: env(safe-area-inset-top, 0px);
+  background: var(--bg2);
+  flex-shrink: 0;
+}
+
+/* ── TOP HEADER ── */
+.header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  z-index: 100;
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-mark {
+  width: 34px;
+  height: 34px;
+  background: var(--red);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(232,25,44,.3);
+}
+.logo-mark svg { width: 18px; height: 18px; fill: white; }
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  color: var(--red);
+}
+.logo-name span { color: var(--text); }
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.loc-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 120px;
+  overflow: hidden;
+}
+.gps-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: gpspulse 2s ease-in-out infinite;
+}
+@keyframes gpspulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(.8); }
+}
+.theme-btn, .notif-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 15px;
+  transition: all .18s;
+  flex-shrink: 0;
+}
+.theme-btn:hover, .notif-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* ── SOS BANNER ── */
+.sos-banner {
+  background: var(--red);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background .15s;
+  position: relative;
+  overflow: hidden;
+}
+.sos-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+  animation: shimmer 2.5s linear infinite;
+}
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.sos-banner:active { background: #c5101f; }
+.sos-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sos-pulse-ring {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.sos-pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.4);
+  animation: ringpulse 1.8s ease-in-out infinite;
+}
+@keyframes ringpulse { 0%,100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.2); opacity: 0; } }
+.sos-pulse-ring svg { width: 16px; height: 16px; fill: white; }
+.sos-banner-text { color: white; }
+.sos-banner-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .3px; }
+.sos-banner-sub { font-size: 10px; opacity: .85; margin-top: 1px; }
+.sos-banner-arrow { color: rgba(255,255,255,.7); font-size: 18px; font-weight: 700; }
+
+/* ── SCROLLABLE CONTENT ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.content::-webkit-scrollbar { display: none; }
+
+/* ── PAGES ── */
+.pg { display: none; min-height: 100%; padding: 16px; animation: pgenter .2s ease; }
+.pg.on { display: block; }
+.pg-map { display: none; flex-direction: column; height: 100%; }
+.pg-map.on { display: flex; }
+@keyframes pgenter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  background: var(--nav-bg);
+  border-top: 1px solid var(--nav-border);
+  display: flex;
+  align-items: stretch;
+  padding: 6px 4px;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  z-index: 100;
+  box-shadow: 0 -4px 20px rgba(15,23,41,.06);
+}
+[data-theme="dark"] .bottom-nav { box-shadow: 0 -4px 20px rgba(0,0,0,.3); }
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .18s;
+  border: none;
+  background: transparent;
+  position: relative;
+  min-width: 0;
+}
+.nav-item:active { background: var(--bg3); transform: scale(.95); }
+.nav-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.nav-icon svg { width: 20px; height: 20px; transition: all .2s; }
+.nav-item .nav-icon svg { stroke: var(--text3); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-item.on .nav-icon svg { stroke: var(--red); }
+.nav-item.on .nav-label { color: var(--red); font-weight: 700; }
+.nav-label { font-size: 9px; font-weight: 500; color: var(--text3); transition: color .18s; white-space: nowrap; }
+.nav-badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  min-width: 14px;
+  height: 14px;
+  background: var(--red);
+  color: white;
+  border-radius: 7px;
+  font-size: 8px;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  border: 1.5px solid var(--nav-bg);
+}
+.nav-badge.show { display: flex; }
+
+/* ═══════════════════════════════════════════════
+   DESIGN SYSTEM COMPONENTS
+═══════════════════════════════════════════════ */
+
+/* Section header */
+.sh { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+.sh-title { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 800; letter-spacing: -.3px; }
+.sh-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: var(--shadow-sm); }
+.card-flat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+
+/* Grid */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+
+/* Stat cards */
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.stat-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.stat-num { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 900; line-height: 1; letter-spacing: -.5px; margin-bottom: 2px; }
+.stat-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; }
+.stat-note { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+/* Buttons */
+.btn { padding: 10px 18px; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-primary { background: var(--red); color: white; box-shadow: 0 4px 14px rgba(232,25,44,.25); }
+.btn-primary:active { transform: scale(.97); }
+.btn-secondary { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
+.btn-secondary:hover { border-color: var(--red); color: var(--red); }
+.btn-green { background: var(--green); color: white; }
+.btn-blue { background: var(--blue); color: white; }
+.btn-danger { background: var(--red); color: white; }
+.btn-outline-red { background: var(--red-soft); border: 1.5px solid var(--red); color: var(--red); }
+.btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+.btn-w { width: 100%; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+.badge-red { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-mid); }
+.badge-yellow { background: var(--yellow-soft); color: var(--yellow); border: 1px solid rgba(217,119,6,.25); }
+.badge-green { background: var(--green-soft); color: var(--green); border: 1px solid rgba(12,172,106,.25); }
+.badge-blue { background: var(--blue-soft); color: var(--blue); border: 1px solid rgba(37,99,235,.2); }
+
+/* Form elements */
+.field { margin-bottom: 12px; }
+.label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); margin-bottom: 6px; }
+.input, .select, .textarea {
+  width: 100%;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance: none;
+}
+.input:focus, .select:focus, .textarea:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(232,25,44,.1);
+  background: var(--card);
+}
+.textarea { min-height: 72px; resize: vertical; }
+.select option { background: var(--card); color: var(--text); }
+.input-row { display: flex; gap: 7px; }
+.input-row .input { flex: 1; }
+
+/* Tabs */
+.tabs { display: flex; gap: 3px; background: var(--bg3); border-radius: 10px; padding: 3px; margin-bottom: 14px; }
+.tab { flex: 1; padding: 8px; text-align: center; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .18s; color: var(--text3); border: none; background: transparent; }
+.tab.on { background: var(--card); color: var(--red); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+
+/* Search */
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-input { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 12px 9px 36px; color: var(--text); font-family: inherit; font-size: 13px; width: 100%; outline: none; transition: all .15s; }
+.search-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(232,25,44,.1); }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+.search-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Filter chips */
+.chip-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; margin-bottom: 12px; scrollbar-width: none; }
+.chip-row::-webkit-scrollbar { display: none; }
+.chip { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--card); color: var(--text3); transition: all .15s; white-space: nowrap; flex-shrink: 0; }
+.chip:active { transform: scale(.96); }
+.chip.on { border-color: var(--red); background: var(--red-soft); color: var(--red); }
+
+/* Toast */
+.toast-wrap { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; width: 90%; max-width: 380px; }
+.toast { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12px; animation: tslide .25s ease; pointer-events: all; display: flex; align-items: center; gap: 9px; box-shadow: var(--shadow-lg); font-weight: 500; }
+.toast-s { border-left: 3px solid var(--green); }
+.toast-e { border-left: 3px solid var(--red); }
+.toast-w { border-left: 3px solid var(--yellow); }
+@keyframes tslide { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Empty state */
+.empty { text-align: center; padding: 32px 16px; color: var(--text3); }
+.empty-icon { width: 48px; height: 48px; background: var(--bg3); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+.empty-icon svg { width: 24px; height: 24px; stroke: var(--text3); fill: none; stroke-width: 1.5; }
+.empty-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.empty-sub { font-size: 12px; }
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ═══════════════════════════════════════════════
+   MAP PAGE
+═══════════════════════════════════════════════ */
+.map-filter-bar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.map-wrapper { position: relative; flex: 1; min-height: 0; }
+#map { width: 100%; height: 100%; }
+.map-fabs { position: absolute; right: 12px; bottom: 70px; z-index: 800; display: flex; flex-direction: column; gap: 8px; }
+.map-fab { width: 40px; height: 40px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow); transition: all .18s; }
+.map-fab:active { transform: scale(.93); }
+.map-fab svg { width: 18px; height: 18px; stroke: var(--text2); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.map-fab:hover svg { stroke: var(--red); }
+.map-count { font-size: 10px; font-weight: 600; color: var(--text3); margin-left: auto; }
+
+/* Incident slide panel */
+.slide-panel {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 900;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 16px 20px;
+  max-height: 50vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 -8px 32px rgba(15,23,41,.12);
+}
+.slide-panel.open { transform: translateY(0); }
+.panel-drag { width: 32px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 12px; }
+
+/* Leaflet overrides */
+.leaflet-container { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+.leaflet-control-zoom { border: 1px solid var(--border) !important; border-radius: 10px !important; overflow: hidden; box-shadow: var(--shadow) !important; }
+.leaflet-control-zoom a { background: var(--card) !important; color: var(--text) !important; border-bottom: 1px solid var(--border) !important; width: 32px !important; height: 32px !important; line-height: 32px !important; font-size: 16px !important; }
+.leaflet-control-zoom a:hover { background: var(--bg3) !important; color: var(--red) !important; }
+.leaflet-popup-content-wrapper { background: var(--card) !important; border: 1px solid var(--border) !important; color: var(--text) !important; border-radius: 12px !important; box-shadow: var(--shadow-lg) !important; }
+.leaflet-popup-tip { background: var(--card) !important; }
+.leaflet-popup-content { margin: 12px 14px !important; font-family: 'Plus Jakarta Sans', sans-serif; }
+.leaflet-attribution-flag { display: none !important; }
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════ */
+.resq-hero {
+  background: linear-gradient(135deg, var(--red) 0%, #c41020 100%);
+  border-radius: 16px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.resq-hero::after {
+  content: 'ResQ';
+  position: absolute;
+  right: -10px;
+  bottom: -18px;
+  font-family: 'Syne', sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  opacity: .08;
+  letter-spacing: -3px;
+  line-height: 1;
+  color: white;
+  pointer-events: none;
+}
+.hero-greeting { font-size: 12px; font-weight: 600; opacity: .85; margin-bottom: 4px; }
+.hero-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 900; letter-spacing: -.4px; margin-bottom: 6px; }
+.hero-sub { font-size: 12px; opacity: .8; line-height: 1.5; }
+.hero-pills { display: flex; gap: 6px; margin-top: 12px; }
+.hero-pill { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 4px 10px; font-size: 10px; font-weight: 700; color: white; display: flex; align-items: center; gap: 4px; }
+
+/* Quick actions */
+.qa-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
+.qa-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  box-shadow: var(--shadow-sm);
+}
+.qa-item:active { transform: scale(.94); border-color: var(--red); }
+.qa-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 7px;
+}
+.qa-icon svg { width: 18px; height: 18px; }
+.qa-label { font-size: 10px; font-weight: 600; color: var(--text2); line-height: 1.2; }
+
+/* ═══════════════════════════════════════════════
+   INCIDENT LIST ITEMS
+═══════════════════════════════════════════════ */
+.inc-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 11px;
+  cursor: pointer;
+  transition: all .18s;
+  box-shadow: var(--shadow-sm);
+}
+.inc-item:active { transform: translateX(2px); border-color: var(--border2); }
+.inc-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.inc-dot svg { width: 17px; height: 17px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.inc-body { flex: 1; min-width: 0; }
+.inc-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+.inc-desc { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+.inc-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════════════
+   EMERGENCY SERVICES
+═══════════════════════════════════════════════ */
+.svc-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: all .18s;
+}
+.svc-card:active { transform: scale(.98); }
+.svc-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+.svc-icon svg { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.svc-name { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+.svc-addr { font-size: 10px; color: var(--text3); margin-bottom: 5px; line-height: 1.4; }
+.svc-dist { font-size: 11px; color: var(--blue); font-weight: 600; }
+.svc-phone { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--green); font-weight: 500; margin-top: 2px; }
+.svc-actions { display: flex; gap: 6px; margin-top: 10px; }
+.svc-actions a, .svc-actions button { flex: 1; font-size: 11px; justify-content: center; text-decoration: none; }
+
+/* Emergency numbers */
+.emer-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 12px; }
+.emer-card { text-align: center; padding: 12px 6px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all .15s; box-shadow: var(--shadow-sm); }
+.emer-card:active { transform: scale(.94); }
+.emer-num { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+.emer-label { font-size: 9px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+
+/* ═══════════════════════════════════════════════
+   SOS & CHECK-IN
+═══════════════════════════════════════════════ */
+.contact-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 7px;
+  box-shadow: var(--shadow-sm);
+}
+.contact-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: white;
+  flex-shrink: 0;
+}
+.contact-name { font-weight: 700; font-size: 13px; }
+.contact-phone { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3); margin-top: 1px; }
+.contact-actions { margin-left: auto; display: flex; gap: 5px; }
+
+/* Check-in timer */
+.timer-display {
+  text-align: center;
+  padding: 20px 16px;
+  background: var(--bg3);
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+.timer-num { font-family: 'JetBrains Mono', monospace; font-size: 44px; font-weight: 600; letter-spacing: 3px; line-height: 1; color: var(--green); }
+.timer-label { font-size: 11px; color: var(--text3); margin-top: 5px; font-weight: 500; }
+.timer-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; display: none; }
+.timer-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--teal)); border-radius: 2px; transition: width 1s linear; }
+
+/* ═══════════════════════════════════════════════
+   MISSING PERSONS
+═══════════════════════════════════════════════ */
+.missing-card {
+  background: var(--card);
+  border: 1.5px solid var(--red-mid);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.missing-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: var(--red-soft);
+  border: 1.5px solid var(--red-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.missing-avatar svg { width: 24px; height: 24px; stroke: var(--red); fill: none; stroke-width: 1.5; }
+.missing-name { font-size: 15px; font-weight: 800; margin-bottom: 2px; }
+.missing-desc { font-size: 11px; color: var(--text2); line-height: 1.5; margin-bottom: 3px; }
+.missing-meta { font-size: 10px; color: var(--text3); font-weight: 500; }
+.missing-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.missing-actions a, .missing-actions button { font-size: 11px; }
+
+/* ═══════════════════════════════════════════════
+   FIRST AID
+═══════════════════════════════════════════════ */
+.fa-cat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  box-shadow: var(--shadow-sm);
+}
+.fa-cat:active { transform: scale(.95); border-color: var(--red); }
+.fa-cat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; }
+.fa-cat-icon svg { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.fa-cat-title { font-weight: 700; font-size: 12px; color: var(--text); line-height: 1.3; }
+.fa-cat-count { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+.fa-step { display: flex; gap: 12px; margin-bottom: 14px; }
+.fa-step-num { width: 24px; height: 24px; border-radius: 8px; background: var(--red); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+.fa-step-head { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+.fa-step-body { font-size: 12px; color: var(--text2); line-height: 1.65; }
+.fa-step-body strong { color: var(--text); }
+.fa-warning { background: var(--yellow-soft); border: 1.5px solid rgba(217,119,6,.25); border-radius: 10px; padding: 10px 12px; font-size: 11px; color: var(--yellow); margin-top: 12px; display: flex; gap: 8px; line-height: 1.55; font-weight: 500; }
+
+/* ═══════════════════════════════════════════════
+   SOS MODAL
+═══════════════════════════════════════════════ */
+.overlay { position: fixed; inset: 0; background: rgba(15,23,41,.75); z-index: 9999; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(8px); padding-bottom: env(safe-area-inset-bottom); }
+.overlay.open { display: flex; }
+.modal-sheet { background: var(--card); border-radius: 24px 24px 0 0; padding: 20px 20px 28px; width: 100%; max-height: 90vh; overflow-y: auto; animation: sheetup .3s cubic-bezier(.4,0,.2,1); }
+@keyframes sheetup { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-drag { width: 32px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 18px; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+
+.sos-modal-header { text-align: center; margin-bottom: 18px; }
+.sos-ring-outer { width: 80px; height: 80px; border-radius: 50%; background: var(--red-soft); border: 2.5px solid var(--red-mid); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; position: relative; }
+.sos-ring-outer::before { content: ''; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid rgba(232,25,44,.25); animation: ring-expand 1.5s ease-in-out infinite; }
+@keyframes ring-expand { 0%,100% { opacity: .8; transform: scale(1); } 50% { opacity: 0; transform: scale(1.2); } }
+.sos-ring-outer svg { width: 32px; height: 32px; fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sos-big-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 900; color: var(--red); margin-bottom: 3px; }
+.sos-sub { font-size: 12px; color: var(--text3); }
+
+.sos-loc-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 7px; }
+.sos-loc-box svg { width: 14px; height: 14px; stroke: var(--green); fill: none; stroke-width: 2; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════
+   REPORT INCIDENT
+═══════════════════════════════════════════════ */
+.photo-drop {
+  width: 100%;
+  height: 130px;
+  background: var(--bg3);
+  border: 2px dashed var(--border2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all .2s;
+  margin-bottom: 10px;
+}
+.photo-drop:active { border-color: var(--red); background: var(--red-soft); }
+.photo-drop svg { width: 24px; height: 24px; stroke: var(--text3); fill: none; stroke-width: 1.5; }
+.photo-drop-label { font-size: 12px; color: var(--text3); font-weight: 500; }
+
+/* route safety bar */
+.safety-bar { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.safety-fill { height: 100%; border-radius: 4px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+.score-display { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 900; line-height: 1; letter-spacing: -.5px; }
+
+/* ═══════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════ */
+.fade-in { animation: fadein .2s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ─── desktop wrapper ─── */
+@media (min-width: 431px) {
+  body { background: #e8eaf0; }
+  [data-theme="dark"] body { background: #06080f; }
+  #app { border-radius: 0; box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 40px 80px rgba(0,0,0,.2); margin-top: 0; height: 100vh; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="status-bar"></div>
+
+  <!-- ── TOP HEADER ── -->
+  <div class="header">
+    <div class="header-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      <span class="logo-name">Res<span>Q</span></span>
+    </div>
+    <div class="header-right">
+      <div class="loc-chip">
+        <span class="gps-dot"></span>
+        <span id="loc-txt" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px">Locating…</span>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle dark mode">
+        <svg id="theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SOS BANNER ── -->
+  <div class="sos-banner" onclick="openSOS()">
+    <div class="sos-banner-left">
+      <div class="sos-pulse-ring">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 5.18 2 2 0 014.11 3h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 10.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 17z"/></svg>
+      </div>
+      <div class="sos-banner-text">
+        <div class="sos-banner-title">ResQ Emergency SOS</div>
+        <div class="sos-banner-sub">Tap to alert emergency contacts with your location</div>
+      </div>
+    </div>
+    <div class="sos-banner-arrow">›</div>
+  </div>
+
+  <!-- ── CONTENT ── -->
+  <div class="content" id="content">
+
+    <!-- ══════════ DASHBOARD ══════════ -->
+    <div class="pg on" id="pg-dash">
+      <!-- Hero card -->
+      <div class="resq-hero" style="margin-bottom:14px">
+        <div class="hero-greeting">Good day — stay safe with ResQ</div>
+        <div class="hero-title">Community Safety<br>at Your Fingertips</div>
+        <div class="hero-pills">
+          <div class="hero-pill" id="hp-inc">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <span id="hp-inc-n">–</span> incidents
+          </div>
+          <div class="hero-pill" id="hp-miss">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span id="hp-miss-n">–</span> missing
+          </div>
+          <div class="hero-pill">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            ResQ active
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="g2" style="margin-bottom:14px">
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--red)"></div>
+          <div class="stat-num" style="color:var(--red)" id="st-inc">–</div>
+          <div class="stat-label">Incidents (24h)</div>
+          <div class="stat-note" id="st-hi">– high severity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--green)"></div>
+          <div class="stat-num" style="color:var(--green)" id="st-ck">–</div>
+          <div class="stat-label">Active Check-Ins</div>
+          <div class="stat-note">Currently active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--yellow)"></div>
+          <div class="stat-num" style="color:var(--yellow)" id="st-mi">–</div>
+          <div class="stat-label">Missing Persons</div>
+          <div class="stat-note">Community alert</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--blue)"></div>
+          <div class="stat-num" style="color:var(--blue)" id="st-sv">–</div>
+          <div class="stat-label">Services Nearby</div>
+          <div class="stat-note">Ready to help</div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:10px;letter-spacing:-.2px">Quick Actions</div>
+      <div class="qa-grid" style="margin-bottom:16px">
+        <div class="qa-item" onclick="goTo('report')">
+          <div class="qa-icon" style="background:var(--red-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div class="qa-label">Report Incident</div>
+        </div>
+        <div class="qa-item" onclick="goTo('routes')">
+          <div class="qa-icon" style="background:var(--blue-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </div>
+          <div class="qa-label">Safe Routes</div>
+        </div>
+        <div class="qa-item" onclick="goTo('emergency')">
+          <div class="qa-icon" style="background:var(--green-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="qa-label">Emergency Help</div>
+        </div>
+        <div class="qa-item" onclick="startCheckin()">
+          <div class="qa-icon" style="background:var(--yellow-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="qa-label">Check-In Timer</div>
+        </div>
+        <div class="qa-item" onclick="goTo('missing')">
+          <div class="qa-icon" style="background:#fdf2f8">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="qa-label">Missing Persons</div>
+        </div>
+        <div class="qa-item" onclick="goTo('firstaid')">
+          <div class="qa-icon" style="background:#fff0f0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="qa-label">First Aid</div>
+        </div>
+        <div class="qa-item" onclick="goTo('map')">
+          <div class="qa-icon" style="background:var(--blue-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+          <div class="qa-label">Live Map</div>
+        </div>
+        <div class="qa-item" onclick="goTo('sos')">
+          <div class="qa-icon" style="background:var(--red-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="qa-label">SOS Setup</div>
+        </div>
+      </div>
+
+      <div class="sh">
+        <div><div class="sh-title" style="font-size:16px">Recent Incidents</div><div class="sh-sub">Last 24 hours near you</div></div>
+        <button class="btn btn-secondary btn-sm" onclick="goTo('map')">View map</button>
+      </div>
+      <div id="dash-incs"></div>
+    </div>
+
+    <!-- ══════════ SAFETY MAP ══════════ -->
+    <div class="pg-map" id="pg-map">
+      <div class="map-filter-bar">
+        <div class="chip-row" style="margin-bottom:0">
+          <div class="chip on" onclick="fMap('all',this)">All</div>
+          <div class="chip" onclick="fMap('theft',this)">Theft</div>
+          <div class="chip" onclick="fMap('accident',this)">Accident</div>
+          <div class="chip" onclick="fMap('fire',this)">Fire</div>
+          <div class="chip" onclick="fMap('flood',this)">Flood</div>
+          <div class="chip" onclick="fMap('harassment',this)">Harassment</div>
+          <div class="chip" onclick="fMap('medical',this)">Medical</div>
+          <div class="chip map-count" id="map-cnt" style="cursor:default;border-color:var(--border);color:var(--text3);background:var(--bg3)">–</div>
+        </div>
+      </div>
+      <div class="map-wrapper">
+        <div id="map"></div>
+        <div class="map-fabs">
+          <div class="map-fab" onclick="centreMap()" title="My location">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+          </div>
+          <div class="map-fab" onclick="goTo('report')" title="Report incident">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="map-fab" onclick="reloadMap()" title="Refresh">
+            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          </div>
+        </div>
+        <div class="slide-panel" id="slide-panel">
+          <div class="panel-drag"></div>
+          <div id="panel-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ REPORT INCIDENT ══════════ -->
+    <div class="pg" id="pg-report">
+      <div class="sh"><div><div class="sh-title">Report Incident</div><div class="sh-sub">Help keep your community safe</div></div></div>
+      <div class="card" style="margin-bottom:10px">
+        <div class="field">
+          <label class="label">Category *</label>
+          <select class="select" id="r-cat">
+            <option value="">Select category…</option>
+            <option value="theft">Theft / Robbery</option>
+            <option value="accident">Road Accident</option>
+            <option value="fire">Fire</option>
+            <option value="flood">Flood / Waterlogging</option>
+            <option value="harassment">Harassment</option>
+            <option value="medical">Medical Emergency</option>
+            <option value="infrastructure">Infrastructure Issue</option>
+            <option value="animal">Dangerous Animal</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Severity *</label>
+          <select class="select" id="r-sev">
+            <option value="low">Low — Minor concern</option>
+            <option value="medium" selected>Medium — Moderate risk</option>
+            <option value="high">High — Immediate danger</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Description</label>
+          <textarea class="textarea" id="r-desc" placeholder="Describe what happened and any important details…"></textarea>
+        </div>
+        <div class="field">
+          <label class="label">Location</label>
+          <div class="input-row" style="margin-bottom:7px">
+            <input class="input" id="r-addr" placeholder="Address or landmark…">
+            <button class="btn btn-secondary btn-sm" onclick="useGPS()" style="flex-shrink:0;white-space:nowrap">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+              GPS
+            </button>
+          </div>
+          <div class="input-row">
+            <input class="input" id="r-lat" placeholder="Latitude" style="font-family:'JetBrains Mono',monospace;font-size:11px">
+            <input class="input" id="r-lng" placeholder="Longitude" style="font-family:'JetBrains Mono',monospace;font-size:11px">
+          </div>
+        </div>
+        <div class="field" style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <input type="checkbox" id="r-anon" style="width:16px;height:16px;accent-color:var(--red)">
+          <label for="r-anon" style="font-size:12px;cursor:pointer;font-weight:500">Submit anonymously</label>
+        </div>
+        <button class="btn btn-primary btn-w" id="r-btn" onclick="submitReport()">Submit Report</button>
+      </div>
+      <div class="card">
+        <div class="photo-drop" id="photo-zone" onclick="document.getElementById('r-photo').click()">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="photo-drop-label">Tap to upload photo evidence</div>
+        </div>
+        <input type="file" id="r-photo" accept="image/*" style="display:none" onchange="prevPic(this)">
+        <div style="padding:10px 12px;background:var(--red-soft);border:1.5px solid var(--red-mid);border-radius:10px;font-size:11px;color:var(--red);font-weight:600">
+          For immediate danger — call 112 first, then report here.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SAFE ROUTES ══════════ -->
+    <div class="pg" id="pg-routes">
+      <div class="sh"><div><div class="sh-title">Safe Route Planner</div><div class="sh-sub">ResQ scores routes using live incident data</div></div></div>
+      <div class="card" style="margin-bottom:10px">
+        <div class="field">
+          <label class="label">From (Start)</label>
+          <div class="input-row" style="margin-bottom:7px">
+            <input class="input" id="rt-from" placeholder="Starting point…">
+            <button class="btn btn-secondary btn-sm" onclick="setFrom()" style="flex-shrink:0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+            </button>
+          </div>
+          <div class="input-row">
+            <input class="input" id="rt-flat" placeholder="Lat" style="font-size:11px;font-family:monospace">
+            <input class="input" id="rt-flng" placeholder="Lng" style="font-size:11px;font-family:monospace">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">To (Destination)</label>
+          <input class="input" id="rt-to" placeholder="Enter destination…" style="margin-bottom:7px">
+          <div class="input-row">
+            <input class="input" id="rt-tlat" placeholder="Lat" style="font-size:11px;font-family:monospace">
+            <input class="input" id="rt-tlng" placeholder="Lng" style="font-size:11px;font-family:monospace">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Travel Mode</label>
+          <div style="display:flex;gap:6px;margin-bottom:2px">
+            <button class="btn btn-secondary btn-sm rt-mode on" style="flex:1" onclick="setRtMode('walking',this)">Walk</button>
+            <button class="btn btn-secondary btn-sm rt-mode" style="flex:1" onclick="setRtMode('cycling',this)">Cycle</button>
+            <button class="btn btn-secondary btn-sm rt-mode" style="flex:1" onclick="setRtMode('driving',this)">Drive</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-w" id="rt-btn" onclick="planRoute()">Analyse Route Safety</button>
+        <div id="rt-result" style="display:none;margin-top:14px">
+          <div class="divider"></div>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+            <div>
+              <div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px">ResQ Safety Score</div>
+              <div class="score-display" id="rt-score">–</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px" id="rt-dist">–</div>
+            </div>
+            <div id="rt-badge" style="margin-top:4px"></div>
+          </div>
+          <div class="safety-bar"><div class="safety-fill" id="rt-fill" style="width:0%"></div></div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500" id="rt-rec"></div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:12px" id="rt-nearby"></div>
+          <div style="display:flex;gap:7px">
+            <a id="rt-gmaps" href="#" target="_blank" class="btn btn-blue btn-sm" style="flex:1">Open in Maps</a>
+            <button class="btn btn-secondary btn-sm" onclick="goTo('map')">Safety Map</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px">Recent Routes</div>
+        <div id="rt-hist"></div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px">High-Risk Areas Today</div>
+        <div id="rt-risk"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ EMERGENCY SERVICES ══════════ -->
+    <div class="pg" id="pg-emergency">
+      <div class="sh">
+        <div><div class="sh-title">Emergency Services</div><div class="sh-sub">Sorted nearest to you</div></div>
+        <button class="btn btn-secondary btn-sm" onclick="loadSvcs()">Refresh</button>
+      </div>
+      <div class="chip-row" id="svc-chips">
+        <button class="chip on" onclick="fSvc('all',this)">All</button>
+        <button class="chip" onclick="fSvc('hospital',this)">Hospitals</button>
+        <button class="chip" onclick="fSvc('police',this)">Police</button>
+        <button class="chip" onclick="fSvc('fire',this)">Fire</button>
+        <button class="chip" onclick="fSvc('pharmacy',this)">Pharmacy</button>
+      </div>
+      <div class="g2" id="svc-grid"></div>
+      <div style="font-weight:700;font-size:13px;margin:14px 0 10px">National Emergency Numbers</div>
+      <div class="emer-grid">
+        <div class="emer-card" onclick="window.open('tel:100')"><div class="emer-num" style="color:var(--blue)">100</div><div class="emer-label">Police</div></div>
+        <div class="emer-card" onclick="window.open('tel:101')"><div class="emer-num" style="color:var(--orange)">101</div><div class="emer-label">Fire</div></div>
+        <div class="emer-card" onclick="window.open('tel:108')"><div class="emer-num" style="color:var(--green)">108</div><div class="emer-label">Ambulance</div></div>
+        <div class="emer-card" onclick="window.open('tel:112')" style="background:var(--red-soft);border-color:var(--red-mid)"><div class="emer-num" style="color:var(--red)">112</div><div class="emer-label" style="color:var(--red)">SOS</div></div>
+      </div>
+    </div>
+
+    <!-- ══════════ SOS & CHECK-IN ══════════ -->
+    <div class="pg" id="pg-sos">
+      <div class="sh"><div><div class="sh-title">SOS & Check-In</div><div class="sh-sub">Stay connected with your emergency contacts</div></div></div>
+      <div class="card" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-weight:700;font-size:14px">Emergency Contacts</div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleAddCt()">+ Add Contact</button>
+        </div>
+        <div id="cts-list"></div>
+        <div id="add-ct" style="display:none;background:var(--bg3);border-radius:10px;padding:12px;margin-top:8px">
+          <div class="field"><label class="label">Full Name *</label><input class="input" id="ct-n" placeholder="Contact name"></div>
+          <div class="field"><label class="label">Phone Number *</label><input class="input" id="ct-p" type="tel" placeholder="+91 99999 99999"></div>
+          <div class="field"><label class="label">Relationship</label>
+            <select class="select" id="ct-r"><option value="family">Family</option><option value="friend">Friend</option><option value="colleague">Colleague</option><option value="other">Other</option></select>
+          </div>
+          <div style="display:flex;gap:7px">
+            <button class="btn btn-primary" style="flex:1" onclick="saveCt()">Save Contact</button>
+            <button class="btn btn-secondary" onclick="toggleAddCt()">Cancel</button>
+          </div>
+        </div>
+        <button class="btn btn-danger btn-w" style="margin-top:12px;font-family:'Syne',sans-serif;font-weight:800;letter-spacing:.3px" onclick="openSOS()">Trigger ResQ SOS Alert</button>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;font-size:14px;margin-bottom:12px">Safety Check-In Timer</div>
+        <div class="timer-display">
+          <div class="timer-num" id="ck-num">00:00</div>
+          <div class="timer-label" id="ck-lbl">Set a timer — ResQ will alert your contacts if you don't check in</div>
+          <div class="timer-bar" id="ck-bar"><div class="timer-fill" id="ck-fill" style="width:100%"></div></div>
+        </div>
+        <div id="ck-setup">
+          <div class="field"><label class="label">Duration</label>
+            <select class="select" id="ck-dur">
+              <option value="15">15 minutes</option><option value="30" selected>30 minutes</option>
+              <option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option>
+            </select>
+          </div>
+          <div class="field"><label class="label">Your Name (optional)</label><input class="input" id="ck-name" placeholder="Your name"></div>
+          <button class="btn btn-green btn-w" onclick="startCheckin()">Start Check-In Timer</button>
+        </div>
+        <div id="ck-active" style="display:none;margin-top:10px">
+          <button class="btn btn-green btn-w" style="margin-bottom:7px" onclick="confirmCheckin()">I'm Safe — Confirm Check-In</button>
+          <button class="btn btn-secondary btn-w" onclick="cancelCheckin()">Cancel Timer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ MISSING PERSONS ══════════ -->
+    <div class="pg" id="pg-missing">
+      <div class="sh">
+        <div><div class="sh-title">Missing Persons</div><div class="sh-sub">ResQ community alert network</div></div>
+        <button class="btn btn-primary btn-sm" onclick="toggleMissForm()">+ Report</button>
+      </div>
+      <div id="miss-form" style="display:none;margin-bottom:12px">
+        <div class="card">
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px">Report Missing Person</div>
+          <div class="field"><label class="label">Full Name *</label><input class="input" id="mp-n" placeholder="Missing person's name"></div>
+          <div class="input-row" style="margin-bottom:12px">
+            <div style="flex:1"><label class="label" style="display:block;margin-bottom:6px">Age</label><input class="input" id="mp-age" type="number" placeholder="Age"></div>
+            <div style="flex:1"><label class="label" style="display:block;margin-bottom:6px">Gender</label><select class="select" id="mp-g"><option value="">–</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+          </div>
+          <div class="field"><label class="label">Physical Description</label><textarea class="textarea" id="mp-d" placeholder="Appearance, clothing, distinguishing features…" style="min-height:60px"></textarea></div>
+          <div class="field"><label class="label">Last Seen Location</label><input class="input" id="mp-loc" placeholder="Area or landmark"></div>
+          <div class="field"><label class="label">Your Name</label><input class="input" id="mp-cn" placeholder="Your name (contact person)"></div>
+          <div class="field"><label class="label">Your Phone *</label><input class="input" id="mp-cp" type="tel" placeholder="+91 99999 99999"></div>
+          <div style="display:flex;gap:7px">
+            <button class="btn btn-primary" style="flex:1" onclick="submitMissing()">Submit Alert</button>
+            <button class="btn btn-secondary" onclick="toggleMissForm()">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab on" onclick="missTab('missing',this)">Missing</button>
+        <button class="tab" onclick="missTab('found',this)">Found</button>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <input class="search-input" id="miss-q" placeholder="Search by name or location…" oninput="loadMissing()">
+      </div>
+      <div id="miss-list"></div>
+    </div>
+
+    <!-- ══════════ FIRST AID ══════════ -->
+    <div class="pg" id="pg-firstaid">
+      <div class="sh">
+        <div><div class="sh-title">First Aid Guide</div><div class="sh-sub">Complete offline emergency procedures</div></div>
+        <span class="badge badge-green">Offline</span>
+      </div>
+      <div id="fa-home">
+        <div class="g4" id="fa-cats" style="margin-bottom:14px"></div>
+        <div style="padding:14px;background:var(--red-soft);border:1.5px solid var(--red-mid);border-radius:12px">
+          <div style="font-size:12px;font-weight:800;margin-bottom:8px;color:var(--red)">ResQ Golden Rules of First Aid</div>
+          <div style="font-size:11px;color:var(--text2);line-height:2">
+            <div><strong style="color:var(--text)">1. Check for danger</strong> — ensure the scene is safe before helping anyone</div>
+            <div><strong style="color:var(--text)">2. Call 112</strong> — immediately for any serious emergency, do not delay</div>
+            <div><strong style="color:var(--text)">3. Don't move casualties</strong> with suspected spinal or neck injuries</div>
+            <div><strong style="color:var(--text)">4. Stay calm</strong> — reassure, speak clearly and confidently</div>
+            <div><strong style="color:var(--text)">5. Recovery position</strong> — unconscious but breathing? Place on their side</div>
+          </div>
+        </div>
+      </div>
+      <div id="fa-guide" style="display:none">
+        <button class="btn btn-secondary btn-sm" style="margin-bottom:12px" onclick="backFA()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        <div id="fa-content"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- ── BOTTOM NAV ── -->
+  <nav class="bottom-nav">
+    <button class="nav-item on" data-pg="dash" onclick="goTo('dash')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" data-pg="map" onclick="goTo('map')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        <span class="nav-badge" id="dot-map">0</span>
+      </div>
+      <span class="nav-label">Map</span>
+    </button>
+    <button class="nav-item" data-pg="emergency" onclick="goTo('emergency')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <span class="nav-label">Emergency</span>
+    </button>
+    <button class="nav-item" data-pg="sos" onclick="goTo('sos')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="nav-label">SOS</span>
+    </button>
+    <button class="nav-item" data-pg="firstaid" onclick="goTo('firstaid')">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      </div>
+      <span class="nav-label">First Aid</span>
+    </button>
+  </nav>
+</div><!-- /app -->
+
+<!-- ══ SOS MODAL ══ -->
+<div class="overlay" id="sos-overlay">
+  <div class="modal-sheet">
+    <div class="sheet-drag"></div>
+    <div class="sos-modal-header">
+      <div class="sos-ring-outer">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 5.18 2 2 0 014.11 3h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 10.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 17z"/></svg>
+      </div>
+      <div class="sos-big-title">ResQ Emergency SOS</div>
+      <div class="sos-sub">Sends your live GPS location to all emergency contacts</div>
+    </div>
+    <div class="sos-loc-box" id="sos-loc">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+      <span>Fetching GPS location…</span>
+    </div>
+    <div class="field">
+      <label class="label">Custom Message (Optional)</label>
+      <textarea class="textarea" id="sos-msg" placeholder="I need help! I am at…" style="min-height:50px"></textarea>
+    </div>
+    <div id="sos-cts-prev" style="margin-bottom:12px;font-size:11px"></div>
+    <button class="btn btn-danger btn-w" style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;padding:14px;letter-spacing:.4px" onclick="triggerSOS()" id="sos-fire">Send ResQ SOS Alert Now</button>
+    <div style="text-align:center;margin-top:10px">
+      <a href="tel:112" style="color:var(--red);font-size:12px;font-weight:700;text-decoration:none">Call 112 — National Emergency</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOASTS ══ -->
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+'use strict';
+// ══════════════════════════════════════════════
+// STATE & CONFIG
+// ══════════════════════════════════════════════
+const API = `${window.location.origin}/api`;
+const SID = (() => { let s = localStorage.getItem('resq_sid'); if (!s) { s = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2); localStorage.setItem('resq_sid', s); } return s; })();
+let loc = { lat: 18.5204, lng: 73.8567 };
+let MAP = null, userMark = null, incMarkers = [], mapFilt = 'all';
+let ckIv = null, ckStart = null, ckDur = null;
+let rtMode = 'walking', svcFilt = 'all', missStatus = 'missing';
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const haversine = (a, b, c, d) => {
+  const R = 6371, dL = (c - a) * Math.PI / 180, dG = (d - b) * Math.PI / 180;
+  const x = Math.sin(dL / 2) ** 2 + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(dG / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+};
+const $ = id => document.getElementById(id);
+const LDB = {
+  g(k, fb = []) { try { const v = localStorage.getItem('resq_' + k); return v !== null ? JSON.parse(v) : fb; } catch { return fb; } },
+  s(k, v) { try { localStorage.setItem('resq_' + k, JSON.stringify(v)); } catch {} }
+};
+
+// Seed data
+function getIncs() {
+  if (LDB.g('incs', null) !== null) return LDB.g('incs');
+  const now = Date.now();
+  const d = [
+    { id: uid(), category: 'theft', description: 'Phone snatching near bus stop, suspect on motorcycle', lat: 18.5245, lng: 73.8540, address: 'FC Road, Pune', severity: 'high', anonymous: true, verified: true, upvotes: 12, created_at: now - 3600000 },
+    { id: uid(), category: 'accident', description: 'Minor collision at JM Road signal, heavy congestion', lat: 18.5312, lng: 73.8476, address: 'JM Road, Pune', severity: 'medium', anonymous: false, verified: false, upvotes: 5, created_at: now - 7200000 },
+    { id: uid(), category: 'flood', description: 'Severe waterlogging near Swargate, 2 cars stranded', lat: 18.5178, lng: 73.8554, address: 'Swargate, Pune', severity: 'medium', anonymous: false, verified: true, upvotes: 23, created_at: now - 1800000 },
+    { id: uid(), category: 'harassment', description: 'Eve teasing reported near Deccan bus stop', lat: 18.5290, lng: 73.8420, address: 'Deccan, Pune', severity: 'high', anonymous: true, verified: false, upvotes: 8, created_at: now - 5400000 },
+    { id: uid(), category: 'fire', description: 'Small fire near garbage dump, locals extinguished it', lat: 18.5228, lng: 73.8612, address: 'Camp Area, Pune', severity: 'low', anonymous: false, verified: true, upvotes: 3, created_at: now - 900000 },
+    { id: uid(), category: 'medical', description: 'Person collapsed near Laxmi Road market, ambulance called', lat: 18.5180, lng: 73.8601, address: 'Laxmi Road, Pune', severity: 'high', anonymous: false, verified: true, upvotes: 7, created_at: now - 2700000 },
+    { id: uid(), category: 'infrastructure', description: 'Large pothole caused multiple tyre punctures overnight', lat: 18.5102, lng: 73.8341, address: 'Kothrud main road', severity: 'low', anonymous: false, verified: false, upvotes: 15, created_at: now - 10800000 },
+  ];
+  LDB.s('incs', d);
+  return d;
+}
+
+function getSvcs() {
+  if (LDB.g('svcs', null) !== null) return LDB.g('svcs');
+  const d = [
+    { id: uid(), name: 'Ruby Hall Clinic', type: 'hospital', lat: 18.5314, lng: 73.8446, address: 'Sassoon Road, Pune', phone: '020-26163391', hours: '24/7', rating: 4.2 },
+    { id: uid(), name: 'Sassoon General Hospital', type: 'hospital', lat: 18.5194, lng: 73.8553, address: 'JPN Road, Pune', phone: '020-26128000', hours: '24/7', rating: 3.8 },
+    { id: uid(), name: 'Deenanath Mangeshkar Hospital', type: 'hospital', lat: 18.5070, lng: 73.8207, address: 'Erandwane, Pune', phone: '020-49150101', hours: '24/7', rating: 4.4 },
+    { id: uid(), name: 'Jehangir Hospital', type: 'hospital', lat: 18.5221, lng: 73.8698, address: '32 Sassoon Road, Pune', phone: '020-66810000', hours: '24/7', rating: 4.3 },
+    { id: uid(), name: 'Pune Police HQ', type: 'police', lat: 18.5204, lng: 73.8567, address: '2 Sadhu Vaswani Road', phone: '020-26126262', hours: '24/7', rating: 3.5 },
+    { id: uid(), name: 'Deccan Gymkhana Police', type: 'police', lat: 18.5167, lng: 73.8394, address: 'Deccan Gymkhana', phone: '020-25670330', hours: '24/7', rating: 3.7 },
+    { id: uid(), name: 'Camp Police Station', type: 'police', lat: 18.5170, lng: 73.8679, address: 'East Street, Camp', phone: '020-26334400', hours: '24/7', rating: 3.6 },
+    { id: uid(), name: 'Shivajinagar Fire Station', type: 'fire', lat: 18.5308, lng: 73.8475, address: 'Shivajinagar, Pune', phone: '020-25536000', hours: '24/7', rating: 4.1 },
+    { id: uid(), name: 'Swargate Fire Station', type: 'fire', lat: 18.5013, lng: 73.8603, address: 'Swargate, Pune', phone: '020-24445555', hours: '24/7', rating: 4.0 },
+    { id: uid(), name: 'Apollo Pharmacy FC Road', type: 'pharmacy', lat: 18.5285, lng: 73.8543, address: 'FC Road, Pune', phone: '1800-599-0101', hours: '8am-10pm', rating: 4.3 },
+    { id: uid(), name: 'MedPlus Camp', type: 'pharmacy', lat: 18.5220, lng: 73.8478, address: 'Camp, Pune', phone: '040-67006700', hours: '7am-11pm', rating: 4.0 },
+    { id: uid(), name: 'Wellness Forever Kothrud', type: 'pharmacy', lat: 18.5156, lng: 73.8274, address: 'Kothrud, Pune', phone: '1800-233-9255', hours: '8am-11pm', rating: 4.2 },
+  ];
+  LDB.s('svcs', d);
+  return d;
+}
+
+// ══════════════════════════════════════════════
+// API
+// ══════════════════════════════════════════════
+async function api(method, path, body) {
+  try {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + path, opts);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+const GET = p => api('GET', p);
+const POST = (p, b) => api('POST', p, b);
+const PATCH = (p, b) => api('PATCH', p, b);
+const DEL = p => api('DELETE', p);
+
+// ══════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════
+function toggleTheme() {
+  const dark = isDark();
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+  $('theme-meta').setAttribute('content', dark ? '#ffffff' : '#0c0e16');
+  // Update map tiles if map is open
+  if (MAP) {
+    MAP.eachLayer(l => { if (l._url) MAP.removeLayer(l); });
+    L.tileLayer(getMapTile(), { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19 }).addTo(MAP);
+  }
+  LDB.s('theme', dark ? 'light' : 'dark');
+}
+
+function getMapTile() {
+  return isDark()
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+}
+
+// ══════════════════════════════════════════════
+// LOCATION
+// ══════════════════════════════════════════════
+function initLoc() {
+  navigator.geolocation?.getCurrentPosition(
+    p => {
+      loc = { lat: p.coords.latitude, lng: p.coords.longitude };
+      const txt = `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}`;
+      $('loc-txt').textContent = txt;
+      if (MAP) { MAP.setView([loc.lat, loc.lng], 14); updateUM(); }
+    },
+    () => { $('loc-txt').textContent = 'Pune (default)'; }
+  );
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+const PAGE_TITLES = { dash: 'Home', map: 'Safety Map', report: 'Report Incident', routes: 'Safe Routes', emergency: 'Emergency', sos: 'SOS & Check-In', missing: 'Missing Persons', firstaid: 'First Aid' };
+
+function goTo(pg) {
+  document.querySelectorAll('.pg, .pg-map').forEach(e => e.classList.remove('on'));
+  document.querySelectorAll('.nav-item[data-pg]').forEach(e => e.classList.remove('on'));
+  const el = $('pg-' + pg);
+  if (el) { el.classList.add('on'); $('content').scrollTop = 0; }
+  const nav = document.querySelector(`.nav-item[data-pg="${pg}"]`);
+  if (nav) nav.classList.add('on');
+  if (pg === 'map')       setTimeout(initMap, 50);
+  if (pg === 'emergency') loadSvcs();
+  if (pg === 'missing')   loadMissing();
+  if (pg === 'dash')      loadDash();
+  if (pg === 'sos')       loadCts();
+  if (pg === 'firstaid')  initFA();
+  if (pg === 'routes')    loadRtData();
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function toast(msg, type = 'info', dur = 3500) {
+  const icons = { success: '✓', error: '!', warn: '⚠', info: 'i' };
+  const cls = { success: 'toast-s', error: 'toast-e', warn: 'toast-w', info: '' };
+  const d = document.createElement('div');
+  d.className = `toast ${cls[type] || ''}`;
+  d.innerHTML = `<span style="font-weight:800;font-size:13px;flex-shrink:0">${icons[type]}</span><span>${msg}</span>`;
+  $('toasts').appendChild(d);
+  setTimeout(() => { d.style.opacity = '0'; d.style.transform = 'translateY(-8px)'; d.style.transition = '.25s'; setTimeout(() => d.remove(), 260); }, dur);
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+async function loadDash() {
+  const stats = await GET('/stats');
+  const local = getIncs().filter(i => Date.now() - i.created_at < 86400000);
+  const miss = LDB.g('miss', []).filter(p => p.status === 'missing');
+
+  const incN = stats?.data?.incidents_24h ?? local.length;
+  const hiN = stats?.data?.high_severity_24h ?? local.filter(i => i.severity === 'high').length;
+
+  $('st-inc').textContent = incN;
+  $('st-hi').textContent = `${hiN} high severity`;
+  $('st-ck').textContent = stats?.data?.active_checkins ?? 0;
+  $('st-mi').textContent = stats?.data?.missing_active ?? miss.length;
+  $('st-sv').textContent = stats?.data?.services_count ?? getSvcs().length;
+  $('hp-inc-n').textContent = incN;
+  $('hp-miss-n').textContent = stats?.data?.missing_active ?? miss.length;
+
+  const res = await GET('/incidents?hours=24');
+  const data = res?.data ?? local;
+  const dotMap = $('dot-map');
+  dotMap.textContent = data.length;
+  dotMap.className = 'nav-badge' + (data.length > 0 ? ' show' : '');
+
+  renderIncList($('dash-incs'), data.slice(0, 6), true);
+}
+
+// ══════════════════════════════════════════════
+// INCIDENT LIST
+// ══════════════════════════════════════════════
+const CAT_COLOR = { theft: '#d97706', accident: '#ea580c', fire: '#dc2626', flood: '#2563eb', harassment: '#7c3aed', medical: '#0cac6a', infrastructure: '#6b7280', animal: '#65a30d', other: '#6b7280' };
+const CAT_SVG = {
+  theft: '<path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/>',
+  accident: '<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+  fire: '<path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 3z"/>',
+  flood: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15a2 2 0 000-4h-1a2 2 0 00-2-2h-1a4 4 0 00-4 4v4"/><path d="M16 22H3"/><path d="M22 22h-1"/>',
+  harassment: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  medical: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  infrastructure: '<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
+  animal: '<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>',
+  other: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
+};
+
+function sevBadge(s) {
+  if (s === 'high') return '<span class="badge badge-red">High</span>';
+  if (s === 'medium') return '<span class="badge badge-yellow">Medium</span>';
+  return '<span class="badge badge-green">Low</span>';
+}
+
+function renderIncList(el, incs, clickable) {
+  if (!incs?.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="empty-title">No incidents nearby</div><div class="empty-sub">Your area appears safe right now</div></div>`;
+    return;
+  }
+  el.innerHTML = incs.map(inc => {
+    const age = Math.round((Date.now() - inc.created_at) / 3600000);
+    const col = CAT_COLOR[inc.category] || '#6b7280';
+    return `<div class="inc-item" ${clickable ? 'onclick="goTo(\'map\')"' : ''}>
+      <div class="inc-dot" style="background:${col}18">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${CAT_SVG[inc.category] || CAT_SVG.other}</svg>
+      </div>
+      <div class="inc-body">
+        <div class="inc-title">${(inc.category || '').charAt(0).toUpperCase() + (inc.category || '').slice(1)} — ${inc.address || 'Unknown location'}</div>
+        <div class="inc-desc">${inc.description || 'No description.'}</div>
+        <div class="inc-meta">${sevBadge(inc.severity)}<span style="font-size:10px;color:var(--text3)">${age}h ago</span><span style="font-size:10px;color:var(--text3)">${inc.upvotes || 0} confirms</span>${inc.anonymous ? '<span style="font-size:10px;color:var(--text3)">Anonymous</span>' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// MAP — REAL OPENSTREETMAP TILES
+// ══════════════════════════════════════════════
+function initMap() {
+  if (MAP) { MAP.invalidateSize(); reloadMap(); return; }
+
+  MAP = L.map('map', { zoomControl: true, attributionControl: true }).setView([loc.lat, loc.lng], 14);
+
+  // Real OpenStreetMap tiles — light mode uses standard OSM, dark uses CartoDB dark
+  L.tileLayer(getMapTile(), {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+    tileSize: 256,
+  }).addTo(MAP);
+
+  updateUM();
+  reloadMap();
+  MAP.on('click', () => $('slide-panel').classList.remove('open'));
+  MAP.on('locationfound', e => {
+    loc = { lat: e.latlng.lat, lng: e.latlng.lng };
+    updateUM();
+  });
+}
+
+function updateUM() {
+  if (!MAP) return;
+  if (userMark) MAP.removeLayer(userMark);
+  const ico = L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;background:#0cac6a;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(12,172,106,.7);position:relative">
+      <div style="position:absolute;inset:-5px;border-radius:50%;border:2px solid rgba(12,172,106,.4);animation:gpspulse 2s ease-in-out infinite"></div>
+    </div>`,
+    iconSize: [14, 14], iconAnchor: [7, 7]
+  });
+  userMark = L.marker([loc.lat, loc.lng], { icon: ico, zIndexOffset: 1000 }).addTo(MAP);
+  userMark.bindPopup('<strong style="font-size:13px">You are here</strong><br><span style="font-size:11px;color:#666">ResQ is tracking your location</span>');
+}
+
+async function reloadMap() {
+  if (!MAP) return;
+  incMarkers.forEach(m => MAP.removeLayer(m));
+  incMarkers = [];
+
+  const res = await GET('/incidents?hours=24');
+  let incs = res?.data ?? getIncs().filter(i => Date.now() - i.created_at < 86400000);
+  if (mapFilt !== 'all') incs = incs.filter(i => i.category === mapFilt);
+
+  $('map-cnt').textContent = `${incs.length} incident${incs.length !== 1 ? 's' : ''}`;
+
+  incs.forEach(inc => {
+    const ageH = (Date.now() - inc.created_at) / 3600000;
+    const opacity = Math.max(0.3, Math.exp(-ageH / 7));
+    const col = CAT_COLOR[inc.category] || '#6b7280';
+    const sz = { high: 20, medium: 15, low: 11 }[inc.severity] || 14;
+
+    const ico = L.divIcon({
+      className: '',
+      html: `<div style="width:${sz}px;height:${sz}px;background:${col};border-radius:50%;opacity:${opacity};border:2.5px solid white;box-shadow:0 2px 6px ${col}88,0 1px 3px rgba(0,0,0,.2);cursor:pointer;transition:.2s"></div>`,
+      iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2]
+    });
+    const m = L.marker([inc.lat, inc.lng], { icon: ico }).addTo(MAP);
+    m.on('click', () => showPanel(inc));
+    incMarkers.push(m);
+  });
+}
+
+function fMap(cat, el) {
+  document.querySelectorAll('.map-filter-bar .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on'); mapFilt = cat; reloadMap();
+}
+
+function centreMap() {
+  if (MAP) {
+    MAP.locate({ setView: true, maxZoom: 15 });
+    navigator.geolocation?.getCurrentPosition(p => {
+      loc = { lat: p.coords.latitude, lng: p.coords.longitude };
+      MAP.setView([loc.lat, loc.lng], 15);
+      updateUM();
+    });
+  }
+}
+
+function showPanel(inc) {
+  const age = Math.round((Date.now() - inc.created_at) / 3600000);
+  const col = CAT_COLOR[inc.category] || '#6b7280';
+  $('panel-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:42px;height:42px;border-radius:12px;background:${col}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${CAT_SVG[inc.category] || CAT_SVG.other}</svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:800;font-size:14px;text-transform:capitalize">${inc.category} Incident</div>
+        <div style="font-size:11px;color:var(--text3)">${inc.address || 'Unknown location'} · ${age}h ago</div>
+      </div>
+      ${sevBadge(inc.severity)}
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">${inc.description || 'No description provided.'}</div>
+    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="upvoteInc('${inc.id}',this)">Confirm (${inc.upvotes || 0})</button>
+      ${inc.anonymous ? '<span class="badge badge-blue">Anonymous</span>' : ''}
+      ${inc.verified ? '<span class="badge badge-green">Verified</span>' : ''}
+    </div>`;
+  $('slide-panel').classList.add('open');
+}
+
+async function upvoteInc(id, btn) {
+  await POST('/incidents/' + id + '/upvote');
+  const incs = getIncs();
+  const inc = incs.find(i => i.id === id);
+  if (inc) { inc.upvotes = (inc.upvotes || 0) + 1; LDB.s('incs', incs); }
+  const m = btn.textContent.match(/\((\d+)\)/);
+  if (m) btn.textContent = btn.textContent.replace(/\(\d+\)/, `(${+m[1] + 1})`);
+  toast('Incident confirmed — thank you', 'success');
+}
+
+// ══════════════════════════════════════════════
+// REPORT INCIDENT
+// ══════════════════════════════════════════════
+function useGPS() {
+  $('r-lat').value = loc.lat.toFixed(6);
+  $('r-lng').value = loc.lng.toFixed(6);
+  $('r-addr').value = 'Near current GPS location';
+  toast('Location set to GPS position', 'success');
+}
+
+function prevPic(inp) {
+  if (!inp.files?.[0]) return;
+  const r = new FileReader();
+  r.onload = e => { $('photo-zone').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`; };
+  r.readAsDataURL(inp.files[0]);
+}
+
+async function submitReport() {
+  const cat = $('r-cat').value;
+  const lat = parseFloat($('r-lat').value);
+  const lng = parseFloat($('r-lng').value);
+  if (!cat) return toast('Please select a category', 'error');
+  if (!lat || !lng) return toast('Tap the GPS button to set location', 'error');
+
+  const btn = $('r-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  const inc = { id: uid(), category: cat, description: $('r-desc').value, lat, lng, address: $('r-addr').value, severity: $('r-sev').value, anonymous: $('r-anon').checked, verified: false, upvotes: 0, created_at: Date.now() };
+  const res = await POST('/incidents', { ...inc, session: SID });
+  if (!res?.success) { const a = getIncs(); a.unshift(inc); LDB.s('incs', a); }
+
+  btn.disabled = false; btn.textContent = 'Submit Report';
+  ['r-desc', 'r-lat', 'r-lng', 'r-addr'].forEach(id => $(id).value = '');
+  $('r-cat').value = ''; $('r-anon').checked = false;
+  $('photo-zone').innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><div class="photo-drop-label">Tap to upload photo evidence</div>`;
+
+  toast('Incident reported successfully. Thank you for keeping your community safe.', 'success', 4500);
+  setTimeout(() => goTo('map'), 1200);
+}
+
+// ══════════════════════════════════════════════
+// EMERGENCY SERVICES
+// ══════════════════════════════════════════════
+const SVC_ICON = {
+  hospital: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/>',
+  police: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  fire: '<path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 3z"/>',
+  pharmacy: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'
+};
+const SVC_COLOR = { hospital: '#0cac6a', police: '#2563eb', fire: '#ea580c', pharmacy: '#7c3aed' };
+
+async function loadSvcs() {
+  const res = await GET(`/emergency-services?type=${svcFilt}&lat=${loc.lat}&lng=${loc.lng}`);
+  let svcs = res?.data ?? (() => {
+    let s = getSvcs().map(x => ({ ...x, distance_km: haversine(loc.lat, loc.lng, x.lat, x.lng).toFixed(1) }));
+    s.sort((a, b) => a.distance_km - b.distance_km);
+    if (svcFilt !== 'all') s = s.filter(x => x.type === svcFilt);
+    return s;
+  })();
+
+  const grid = $('svc-grid');
+  if (!svcs.length) { grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon"><svg viewBox="0 0 24 24">${SVC_ICON.hospital}</svg></div><div class="empty-title">No services found</div></div>`; return; }
+  grid.innerHTML = svcs.map(s => {
+    const col = SVC_COLOR[s.type] || '#6b7280';
+    return `<div class="svc-card">
+      <div class="svc-icon" style="background:${col}18">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${SVC_ICON[s.type] || SVC_ICON.hospital}</svg>
+      </div>
+      <div class="svc-name">${s.name}</div>
+      <div class="svc-addr">${s.address}</div>
+      <div class="svc-dist">${s.distance_km ?? '–'} km away</div>
+      <div class="svc-phone">${s.phone}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">${s.hours}</div>
+      <div class="svc-actions">
+        <a href="tel:${(s.phone || '').replace(/[^0-9+]/g, '')}" class="btn btn-green btn-sm">Call</a>
+        <a href="https://maps.google.com/?q=${s.lat},${s.lng}" target="_blank" class="btn btn-blue btn-sm">Map</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function fSvc(t, el) {
+  document.querySelectorAll('#svc-chips .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on'); svcFilt = t; loadSvcs();
+}
+
+// ══════════════════════════════════════════════
+// SOS CONTACTS
+// ══════════════════════════════════════════════
+function loadCts() {
+  const cts = LDB.g('cts', []);
+  const el = $('cts-list');
+  if (!cts.length) {
+    el.innerHTML = `<div class="empty" style="padding:16px"><div class="empty-title">No contacts yet</div><div class="empty-sub">Add emergency contacts who will receive your SOS alert</div></div>`;
+    return;
+  }
+  el.innerHTML = cts.map(c => `
+    <div class="contact-item">
+      <div class="contact-avatar">${c.name[0].toUpperCase()}</div>
+      <div><div class="contact-name">${c.name}</div><div class="contact-phone">${c.phone} · ${c.rel}</div></div>
+      <div class="contact-actions">
+        <a href="tel:${c.phone.replace(/[^0-9+]/g, '')}" class="btn btn-secondary btn-sm">Call</a>
+        <button class="btn btn-secondary btn-sm" onclick="delCt('${c.id}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleAddCt() {
+  const f = $('add-ct');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveCt() {
+  const n = $('ct-n').value.trim(), p = $('ct-p').value.trim();
+  if (!n || !p) return toast('Name and phone are required', 'error');
+  const ct = { id: uid(), name: n, phone: p, rel: $('ct-r').value, created_at: Date.now() };
+  await POST('/sos-contacts', { ...ct, session: SID });
+  const cts = LDB.g('cts', []); cts.push(ct); LDB.s('cts', cts);
+  $('ct-n').value = ''; $('ct-p').value = '';
+  toggleAddCt(); loadCts();
+  toast(`${n} added as emergency contact`, 'success');
+}
+
+async function delCt(id) {
+  await DEL('/sos-contacts/' + id);
+  LDB.s('cts', LDB.g('cts', []).filter(c => c.id !== id));
+  loadCts(); toast('Contact removed', 'warn');
+}
+
+// ══════════════════════════════════════════════
+// CHECK-IN TIMER
+// ══════════════════════════════════════════════
+function startCheckin() {
+  goTo('sos');
+  const mins = parseInt($('ck-dur').value || '30');
+  const name = $('ck-name').value || 'You';
+  ckDur = mins * 60000; ckStart = Date.now();
+  $('ck-setup').style.display = 'none';
+  $('ck-active').style.display = 'block';
+  $('ck-bar').style.display = 'block';
+  $('ck-lbl').textContent = `${name} — confirm before timer expires or ResQ will alert your contacts`;
+  ckIv = setInterval(tickCk, 1000);
+  POST('/checkins', { timer_minutes: mins, user_name: name, lat: loc.lat, lng: loc.lng, session: SID });
+  toast(`ResQ check-in timer started: ${mins} minutes`, 'success');
+}
+
+function tickCk() {
+  const rem = ckDur - (Date.now() - ckStart);
+  if (rem <= 0) {
+    clearInterval(ckIv);
+    $('ck-num').textContent = '00:00';
+    $('ck-num').style.color = 'var(--red)';
+    $('ck-lbl').textContent = 'Timer expired — ResQ is alerting your contacts now';
+    $('ck-fill').style.width = '0%';
+    const cts = LDB.g('cts', []);
+    toast(cts.length ? `Timer expired — ResQ alert sent to ${cts.length} contacts` : 'Timer expired — add emergency contacts for ResQ to alert', cts.length ? 'error' : 'warn', 7000);
+    setTimeout(resetCk, 4000); return;
+  }
+  const s = Math.floor(rem / 1000);
+  $('ck-num').textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const pct = (rem / ckDur) * 100;
+  $('ck-fill').style.width = pct + '%';
+  const n = $('ck-num');
+  if (pct < 20) { n.style.color = 'var(--red)'; $('ck-fill').style.background = 'var(--red)'; }
+  else if (pct < 50) { n.style.color = 'var(--yellow)'; $('ck-fill').style.background = 'var(--yellow)'; }
+  else { n.style.color = 'var(--green)'; $('ck-fill').style.background = 'linear-gradient(90deg, var(--green), var(--teal))'; }
+}
+
+function confirmCheckin() {
+  clearInterval(ckIv);
+  toast('Check-in confirmed — ResQ has marked you as safe', 'success', 4500);
+  resetCk();
+}
+function cancelCheckin() { clearInterval(ckIv); toast('Check-in timer cancelled', 'warn'); resetCk(); }
+function resetCk() {
+  $('ck-setup').style.display = 'block';
+  $('ck-active').style.display = 'none';
+  $('ck-bar').style.display = 'none';
+  $('ck-num').textContent = '00:00';
+  $('ck-num').style.color = 'var(--green)';
+  $('ck-fill').style.background = 'linear-gradient(90deg, var(--green), var(--teal))';
+  $('ck-lbl').textContent = 'Set a timer — ResQ will alert your contacts if you don\'t check in';
+}
+
+// ══════════════════════════════════════════════
+// SOS MODAL
+// ══════════════════════════════════════════════
+function openSOS() {
+  $('sos-overlay').classList.add('open');
+  const cts = LDB.g('cts', []);
+  $('sos-cts-prev').innerHTML = cts.length
+    ? `<div style="color:var(--text3);font-size:11px;margin-bottom:5px;font-weight:600">Will alert ${cts.length} contact${cts.length > 1 ? 's' : ''}:</div>` + cts.map(c => `<div style="padding:6px 10px;background:var(--bg3);border-radius:8px;margin-bottom:4px;font-size:11px;font-weight:500">${c.name} — ${c.phone}</div>`).join('')
+    : `<div style="padding:10px;background:var(--yellow-soft);border:1.5px solid rgba(217,119,6,.25);border-radius:8px;font-size:11px;color:var(--yellow);font-weight:600">No emergency contacts added. Add contacts in SOS & Check-In for ResQ to alert them.</div>`;
+  $('sos-loc').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg><span>${loc.lat.toFixed(6)}, ${loc.lng.toFixed(6)} — Pune, Maharashtra</span>`;
+  navigator.geolocation?.getCurrentPosition(p => {
+    loc = { lat: p.coords.latitude, lng: p.coords.longitude };
+    $('sos-loc').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg><span>${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)} (GPS verified)</span>`;
+  });
+}
+
+function closeSOS() { $('sos-overlay').classList.remove('open'); }
+
+async function triggerSOS() {
+  const btn = $('sos-fire');
+  btn.disabled = true; btn.textContent = 'Sending ResQ SOS…';
+  await POST('/sos/trigger', { lat: loc.lat, lng: loc.lng, message: $('sos-msg').value || 'I need help!', session: SID });
+  const cts = LDB.g('cts', []);
+  setTimeout(() => {
+    closeSOS();
+    toast(cts.length ? `ResQ SOS alert sent to ${cts.length} contacts with your live location` : 'ResQ SOS triggered — no contacts saved. Call 112 immediately!', cts.length ? 'error' : 'warn', 7000);
+    btn.disabled = false; btn.textContent = 'Send ResQ SOS Alert Now';
+  }, 1400);
+}
+
+// ══════════════════════════════════════════════
+// MISSING PERSONS
+// ══════════════════════════════════════════════
+function toggleMissForm() {
+  const f = $('miss-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function missTab(s, el) {
+  document.querySelectorAll('#pg-missing .tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on'); missStatus = s; loadMissing();
+}
+
+async function loadMissing() {
+  const q = ($('miss-q')?.value || '').trim();
+  const res = await GET(`/missing-persons?status=${missStatus}&q=${encodeURIComponent(q)}`);
+  let ps = res?.data ?? (() => {
+    let arr = LDB.g('miss', []).filter(p => p.status === missStatus);
+    if (q) { const ql = q.toLowerCase(); arr = arr.filter(p => p.name?.toLowerCase().includes(ql) || (p.last_seen_location || '').toLowerCase().includes(ql)); }
+    return arr;
+  })();
+  const el = $('miss-list');
+  if (!ps.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="empty-title">No ${missStatus} persons${q ? ' matching search' : ''}</div></div>`;
+    return;
+  }
+  el.innerHTML = ps.map(p => {
+    const age = Math.round((Date.now() - p.created_at) / 3600000);
+    return `<div class="missing-card">
+      <div class="missing-avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
+          <div class="missing-name">${p.name}</div>
+          ${p.status === 'missing' ? '<span class="badge badge-red">MISSING</span>' : '<span class="badge badge-green">FOUND</span>'}
+        </div>
+        ${p.age ? `<div class="missing-desc">Age: ${p.age}${p.gender ? ' · ' + p.gender : ''}</div>` : ''}
+        ${p.description ? `<div class="missing-desc">${p.description.slice(0, 120)}${p.description.length > 120 ? '…' : ''}</div>` : ''}
+        ${p.last_seen_location ? `<div class="missing-meta">Last seen: ${p.last_seen_location}</div>` : ''}
+        <div class="missing-meta">${p.contact_name || ''} ${p.contact_phone ? '— ' + p.contact_phone : ''} · ${age}h ago</div>
+        ${p.status === 'missing' ? `
+          <div class="missing-actions">
+            <a href="tel:${(p.contact_phone || '').replace(/[^0-9+]/g, '')}" class="btn btn-blue btn-sm">Contact Family</a>
+            <button class="btn btn-green btn-sm" onclick="markFound('${p.id}')">Mark as Found</button>
+          </div>` : '<div style="margin-top:7px"><span class="badge badge-green" style="font-size:11px">Found safe</span></div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitMissing() {
+  const n = $('mp-n').value.trim();
+  if (!n) return toast("Enter the missing person's name", 'error');
+  const p = { id: uid(), name: n, age: parseInt($('mp-age').value) || null, gender: $('mp-g').value, description: $('mp-d').value, last_seen_location: $('mp-loc').value, contact_name: $('mp-cn').value, contact_phone: $('mp-cp').value, status: 'missing', views: 0, created_at: Date.now(), updated_at: Date.now() };
+  const res = await POST('/missing-persons', p);
+  if (!res?.success) { const arr = LDB.g('miss', []); arr.unshift(p); LDB.s('miss', arr); }
+  toggleMissForm();
+  ['mp-n', 'mp-age', 'mp-d', 'mp-loc', 'mp-cn', 'mp-cp'].forEach(id => $(id).value = '');
+  loadMissing();
+  toast(`ResQ community alert posted for ${n}`, 'success', 5000);
+}
+
+async function markFound(id) {
+  await PATCH('/missing-persons/' + id + '/found');
+  const arr = LDB.g('miss', []); const p = arr.find(x => x.id === id); if (p) p.status = 'found'; LDB.s('miss', arr);
+  loadMissing();
+  toast('Person marked as found and safe', 'success', 5000);
+}
+
+// ══════════════════════════════════════════════
+// SAFE ROUTES
+// ══════════════════════════════════════════════
+function setRtMode(m, el) {
+  document.querySelectorAll('.rt-mode').forEach(b => { b.classList.remove('on'); b.classList.remove('btn-blue'); b.classList.add('btn-secondary'); });
+  el.classList.add('on'); el.classList.remove('btn-secondary'); el.classList.add('btn-blue'); rtMode = m;
+}
+function setFrom() {
+  $('rt-from').value = 'Current Location';
+  $('rt-flat').value = loc.lat.toFixed(6);
+  $('rt-flng').value = loc.lng.toFixed(6);
+  toast('Start point set to GPS location', 'success');
+}
+
+async function planRoute() {
+  const fLat = parseFloat($('rt-flat').value) || loc.lat;
+  const fLng = parseFloat($('rt-flng').value) || loc.lng;
+  const tLat = parseFloat($('rt-tlat').value);
+  const tLng = parseFloat($('rt-tlng').value);
+  const tAddr = $('rt-to').value;
+  if (!tAddr && (!tLat || !tLng)) return toast('Enter a destination', 'error');
+  const dLat = tLat || (loc.lat + (Math.random() - .5) * .025);
+  const dLng = tLng || (loc.lng + (Math.random() - .5) * .025);
+
+  const btn = $('rt-btn');
+  btn.disabled = true; btn.textContent = 'Analysing route…';
+
+  const res = await POST('/safe-routes', { from_lat: fLat, from_lng: fLng, to_lat: dLat, to_lng: dLng, mode: rtMode, from_address: $('rt-from').value, to_address: tAddr, session: SID });
+  let score, rec, nearby, distKm, eta;
+  if (res?.data) {
+    score = res.data.safety_score; rec = res.data.recommendation;
+    nearby = res.data.incidents_nearby; distKm = res.data.distance_km; eta = res.data.estimated_minutes;
+  } else {
+    const incs = getIncs().filter(i => Date.now() - i.created_at < 43200000);
+    const mLat = (fLat + dLat) / 2, mLng = (fLng + dLng) / 2;
+    let danger = 0, nl = [];
+    incs.forEach(i => { const d = haversine(mLat, mLng, i.lat, i.lng); if (d < 2) { danger += ({ high: 3, medium: 2, low: 1 }[i.severity] || 1) * Math.exp(-d * 2); nl.push(i); } });
+    score = Math.round(Math.max(0, Math.min(100, 100 - danger * 15)));
+    nearby = nl.length; distKm = haversine(fLat, fLng, dLat, dLng).toFixed(2);
+    eta = Math.round((distKm / ({ walking: 5, cycling: 15, driving: 40 }[rtMode] || 5)) * 60);
+    rec = score > 70 ? 'Route appears safe based on recent ResQ community reports.' : score > 40 ? 'Some incidents reported nearby. Stay on busy, well-lit streets.' : 'Multiple safety incidents on this route. ResQ recommends an alternative path.';
+    const routes = LDB.g('rts', []); routes.unshift({ id: uid(), from: $('rt-from').value, to: tAddr, score, nearby, distKm, eta, mode: rtMode, created_at: Date.now() }); if (routes.length > 8) routes.pop(); LDB.s('rts', routes);
+  }
+
+  btn.disabled = false; btn.textContent = 'Analyse Route Safety';
+  $('rt-result').style.display = 'block';
+  const sEl = $('rt-score');
+  sEl.textContent = score + '/100';
+  sEl.style.color = score > 70 ? 'var(--green)' : score > 40 ? 'var(--yellow)' : 'var(--red)';
+  $('rt-dist').textContent = `${distKm} km · ~${eta} min (${rtMode})`;
+  const fill = $('rt-fill');
+  fill.style.width = score + '%';
+  fill.style.background = score > 70 ? 'linear-gradient(90deg, #059669, #0cac6a)' : score > 40 ? 'linear-gradient(90deg, #b45309, #d97706)' : 'linear-gradient(90deg, #b91c1c, #dc2626)';
+  $('rt-badge').innerHTML = score > 70 ? '<span class="badge badge-green">Safe Route</span>' : score > 40 ? '<span class="badge badge-yellow">Use Caution</span>' : '<span class="badge badge-red">Risky Route</span>';
+  $('rt-rec').textContent = rec;
+  $('rt-nearby').textContent = `${nearby} incident${nearby !== 1 ? 's' : ''} detected within 2km of this route in the last 12 hours.`;
+  $('rt-gmaps').href = `https://www.google.com/maps/dir/${fLat},${fLng}/${dLat},${dLng}/`;
+  loadRtData();
+}
+
+function loadRtData() {
+  const routes = LDB.g('rts', []);
+  const rh = $('rt-hist');
+  if (!routes.length) { rh.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">No recent routes yet</div>'; }
+  else {
+    rh.innerHTML = routes.slice(0, 4).map(r => {
+      const c = r.score > 70 ? 'var(--green)' : r.score > 40 ? 'var(--yellow)' : 'var(--red)';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:${c};width:40px">${Math.round(r.score)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.from || '?'} → ${r.to || '?'}</div>
+          <div style="font-size:10px;color:var(--text3)">${r.mode} · ${Math.round((Date.now() - r.created_at) / 3600000)}h ago</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  const incs = getIncs().filter(i => Date.now() - i.created_at < 86400000 && i.severity === 'high');
+  const rk = $('rt-risk');
+  if (!incs.length) { rk.innerHTML = '<div style="font-size:11px;color:var(--green);font-weight:600">No high-severity incidents reported in the last 24 hours</div>'; }
+  else { rk.innerHTML = incs.slice(0, 4).map(i => `<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;align-items:flex-start"><div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:3px"></div><span style="color:var(--text2);font-weight:500">${i.address || 'Unknown'} — ${(i.description || '').slice(0, 60)}</span></div>`).join(''); }
+}
+
+// ══════════════════════════════════════════════
+// FIRST AID
+// ══════════════════════════════════════════════
+const FA_DATA = {
+  cpr: { icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', color: '#dc2626', bg: '#fff0f0', title: 'CPR', count: '6 steps', steps: [{ h: 'Check responsiveness', b: 'Tap shoulders firmly and shout "Are you OK?" Look for breathing for no more than <strong>10 seconds</strong>. No response → begin CPR immediately.' }, { h: 'Call 112', b: 'Call emergency services or shout for someone to call. Request an <strong>AED</strong> if available.' }, { h: 'Position correctly', b: 'Person on back on a <strong>firm flat surface</strong>. Kneel beside them at shoulder level.' }, { h: '30 chest compressions', b: 'Heel of hand on <strong>centre of chest</strong>. Push <strong>5–6cm deep at 100–120/min</strong>. Interlock hands. Don\'t stop.' }, { h: '2 rescue breaths (if trained)', b: 'Tilt head back, lift chin, <strong>pinch nose</strong>. 2 slow breaths watching chest rise. Return to compressions.' }, { h: 'Continue 30:2', b: 'Keep going until emergency services arrive or person recovers. Switch rescuers every 2 minutes.' }], warn: 'Untrained? Hands-only CPR — push hard and fast in the centre of the chest at 100–120 per minute continuously.' },
+  choking: { icon: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>', color: '#ea580c', bg: '#fff7ed', title: 'Choking', count: '4 steps', steps: [{ h: 'Assess severity', b: 'If person can <strong>cough, speak or breathe</strong> — encourage forceful coughing. Do NOT interfere.' }, { h: '5 back blows', b: 'Stand behind, slightly to one side. Give <strong>5 firm blows</strong> between shoulder blades. Check mouth after each.' }, { h: '5 abdominal thrusts', b: 'Arms around waist, fist above navel. Pull <strong>sharply inward and upward</strong> up to 5 times.' }, { h: 'Alternate & call 112', b: 'Continue alternating back blows with abdominal thrusts. Call 112. If unconscious → CPR.' }], warn: 'Never do blind finger sweeps in the mouth. Only remove a visible object.' },
+  bleeding: { icon: '<path d="M7 2v20M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/>', color: '#be123c', bg: '#fff0f5', title: 'Severe Bleeding', count: '5 steps', steps: [{ h: 'Protect yourself', b: '<strong>Wear gloves</strong> if available. Avoid direct blood contact.' }, { h: 'Apply direct pressure', b: 'Press a clean cloth firmly over the wound. <strong>Do not remove</strong> — add more on top if soaked.' }, { h: 'Elevate the limb', b: 'Raise arm or leg <strong>above heart level</strong> if no fracture suspected.' }, { h: 'Tourniquet if necessary', b: 'Apply <strong>5–7cm above wound</strong> for life-threatening limb bleeding. Tighten until bleeding stops. <strong>Write time applied.</strong>' }, { h: 'Keep warm, call 112', b: 'Cover with blanket to prevent shock. Monitor breathing. Call 112.' }], warn: 'Do NOT remove objects embedded in wounds. Stabilise and seek emergency care immediately.' },
+  burns: { icon: '<path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 3z"/>', color: '#c2410c', bg: '#fff7ed', title: 'Burns', count: '5 steps', steps: [{ h: 'Cool for 20 minutes', b: 'Run <strong>cool (not cold) water</strong> over the burn for a full 20 minutes. Start immediately.' }, { h: 'Remove clothing', b: 'Remove clothing and jewellery carefully. <strong>Never remove anything stuck to skin.</strong>' }, { h: 'Cover', b: 'Cover with <strong>cling film or clean plastic</strong>. Avoid fluffy cotton or plasters.' }, { h: 'Pain relief', b: 'Paracetamol or ibuprofen if conscious. <strong>Do not burst blisters.</strong>' }, { h: 'Seek hospital care', b: 'Go to A&E for burns over 3cm, on face/hands/feet, deep burns, or in children/elderly.' }], warn: 'Never apply ice, butter, oil or toothpaste to burns. These cause more damage.' },
+  fracture: { icon: '<line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/>', color: '#0369a1', bg: '#eff6ff', title: 'Fractures', count: '4 steps', steps: [{ h: 'Immobilise', b: 'Tell person <strong>not to move</strong> the injured area. Support it exactly as found.' }, { h: 'Ice (wrapped)', b: '<strong>20 min on, 20 min off.</strong> Never apply ice directly to skin.' }, { h: 'Improvised splint', b: 'If moving: pad and splint. Secure <strong>above and below</strong> the injury. Check circulation.' }, { h: 'Watch for problems', b: 'Limb becomes <strong>cold, pale, numb or blue</strong>? Loosen splint immediately. Seek emergency care.' }], warn: 'Never try to straighten a broken bone. Suspect spinal injury after high falls or accidents — do not move.' },
+  heatstroke: { icon: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>', color: '#b45309', bg: '#fffbeb', title: 'Heat Stroke', count: '5 steps', steps: [{ h: 'Know the signs', b: '<strong>Heat stroke (emergency):</strong> hot DRY skin, temp >39.4°C, confusion, rapid pulse. <strong>Heat exhaustion:</strong> heavy sweating, weak pulse.' }, { h: 'Move to cool area', b: 'Out of sun <strong>immediately</strong>. To shade or AC. Loosen excess clothing.' }, { h: 'Cool rapidly', b: 'Cool wet cloths on <strong>neck, armpits and groin</strong>. Fan vigorously. Cool water immersion.' }, { h: 'Rehydrate', b: 'Cool water or sports drink to sip <strong>slowly</strong> if fully conscious. No alcohol.' }, { h: 'Call 112 for heat stroke', b: 'Heat stroke is <strong>life-threatening</strong>. Call 112 immediately. Unconscious + breathing → recovery position.' }], warn: 'Confusion, seizures or loss of consciousness = heat stroke emergency. Call 112 immediately.' },
+  drowning: { icon: '<path d="M2 12h20M2 17h20M2 7h20"/>', color: '#0284c7', bg: '#eff6ff', title: 'Drowning', count: '4 steps', steps: [{ h: 'Reach — Throw — Row — Go', b: '<strong>Reach</strong> from land. <strong>Throw</strong> rope/float. <strong>Row</strong> boat. Enter water only as absolute last resort if trained.' }, { h: 'Remove from water', b: 'Pull to safety. Approach from behind. <strong>Protect yourself</strong> — struggling victims can drown rescuers.' }, { h: 'Check breathing, start CPR', b: 'Once out: check breathing 10 seconds. Call 112. If not breathing → <strong>CPR immediately</strong>.' }, { h: 'Hospital assessment always', b: 'All drowning victims need hospital checks. <strong>Secondary drowning</strong> can occur hours later. Prevent hypothermia.' }], warn: 'Do not jump in to rescue a drowning person unless you are a trained water rescuer.' },
+  snakebite: { icon: '<path d="M3 3l18 18M3 21l18-18"/>', color: '#15803d', bg: '#f0fdf4', title: 'Snakebite', count: '5 steps', steps: [{ h: 'Move away from snake', b: 'Get person away. <strong>Do NOT try to catch or kill the snake.</strong> Note its appearance for medical staff.' }, { h: 'Keep still and calm', b: 'Immobilise bitten limb at or <strong>below heart level</strong>. Do not let the person walk.' }, { h: 'Remove constrictions', b: 'Remove <strong>rings, watches, tight clothing</strong> before swelling starts.' }, { h: 'Firm pressure bandage', b: 'Bandage from <strong>fingers/toes upward</strong> past the bite. <strong>No cutting, sucking, ice or tourniquet.</strong>' }, { h: 'Hospital NOW', b: '<strong>Antivenom is the only treatment.</strong> Get to hospital immediately — time is critical.' }], warn: 'Do NOT suck venom, cut the wound, apply ice or use a tourniquet. Get to hospital as fast as possible.' },
+};
+
+function initFA() {
+  $('fa-home').style.display = 'block';
+  $('fa-guide').style.display = 'none';
+  $('fa-cats').innerHTML = Object.entries(FA_DATA).map(([k, d]) => `
+    <div class="fa-cat" onclick="showFA('${k}')">
+      <div class="fa-cat-icon" style="background:${d.bg}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${d.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d.icon}</svg>
+      </div>
+      <div class="fa-cat-title">${d.title}</div>
+      <div class="fa-cat-count">${d.count}</div>
+    </div>`).join('');
+}
+
+function showFA(k) {
+  const d = FA_DATA[k]; if (!d) return;
+  $('fa-home').style.display = 'none';
+  $('fa-guide').style.display = 'block';
+  $('fa-content').innerHTML = `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:36px;height:36px;border-radius:10px;background:${d.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${d.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d.icon}</svg>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800">${d.title}</div>
+      </div>
+      ${d.steps.map((s, i) => `<div class="fa-step"><div class="fa-step-num">${i + 1}</div><div><div class="fa-step-head">${s.h}</div><div class="fa-step-body">${s.b}</div></div></div>`).join('')}
+      ${d.warn ? `<div class="fa-warning"><span style="font-weight:800;flex-shrink:0">!</span><span>${d.warn}</span></div>` : ''}
+    </div>
+    <div style="padding:11px 13px;background:var(--blue-soft);border:1.5px solid rgba(37,99,235,.2);border-radius:10px;font-size:11px;color:var(--blue);font-weight:600">
+      Always call 112 for serious emergencies. ResQ First Aid is interim care while professional help is on the way.
+    </div>`;
+}
+
+function backFA() { $('fa-home').style.display = 'block'; $('fa-guide').style.display = 'none'; }
+
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Restore theme
+  const saved = LDB.g('theme', null);
+  if (saved === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); $('theme-meta').setAttribute('content', '#0c0e16'); }
+
+  initLoc();
+  getIncs(); getSvcs();
+  loadDash();
+  registerSW();
+
+  // Close SOS on overlay tap
+  $('sos-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeSOS(); });
+
+  // Prevent body scroll on mobile
+  document.body.addEventListener('touchmove', e => {
+    if (!e.target.closest('.content, .slide-panel, .modal-sheet, #map')) e.preventDefault();
+  }, { passive: false });
+});
+</script>
+</body>
+</html>

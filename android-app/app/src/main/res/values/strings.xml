@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ResQ Android</string>
+    <string name="file_picker_error">Unable to open file chooser.</string>
+    <string name="change_url">Set ResQ server URL</string>
+    <string name="url_hint">http://10.0.2.2:8000 or http://192.168.x.x:8000</string>
+</resources>
