@@ -3,9 +3,6 @@ package com.resq.mobile
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.telephony.SmsManager
-import android.util.Log
 import android.webkit.*
 import android.widget.EditText
 import android.widget.Toast
@@ -96,24 +92,11 @@ class MainActivity : AppCompatActivity() {
                         @Suppress("DEPRECATION")
                         SmsManager.getDefault()
                     }
-
-                    val sentIntent = PendingIntent.getBroadcast(
-                        this, 0,
-                        Intent(this, SmsSentReceiver::class.java),
-                        PendingIntent.FLAG_IMMUTABLE
-                    )
-
-                    if (message.length > 160) {
-                        val parts = smsManager.divideMessage(message)
-                        val sentIntents = ArrayList<PendingIntent>(parts.size).also { list ->
-                            repeat(parts.size) { list.add(sentIntent) }
-                        }
-                        smsManager.sendMultipartTextMessage(phoneNumber, null, parts, sentIntents, null)
-                    } else {
-                        smsManager.sendTextMessage(phoneNumber, null, message, sentIntent, null)
-                    }
                     
-                    Toast.makeText(this, "SOS Alert dispatched to $phoneNumber", Toast.LENGTH_SHORT).show()
+                    val parts = smsManager.divideMessage(message)
+                    smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null)
+                    
+                    Toast.makeText(this, "SOS Alert sent to $phoneNumber", Toast.LENGTH_SHORT).show()
                 } else {
                     // Fallback to Intent if permission not granted
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
@@ -122,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     startActivity(intent)
-                    Toast.makeText(this, "Grant SMS permission for automatic sending", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Opening SMS app (Grant SMS permission for auto-send)", Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -166,23 +149,16 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url.toString()
-                
-                // If it's the local Flask server, allow it to load in WebView
-                if (url.startsWith("http://127.0.0.1:8000") || url.startsWith("http://localhost:8000")) {
-                    return false
+                if (url.startsWith("tel:") || url.startsWith("sms:")) {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        startActivity(intent)
+                        return true
+                    } catch (e: Exception) {
+                        return false
+                    }
                 }
-                
-                // For everything else (Google Maps, tel, sms, external sites), use Intents
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(intent)
-                    return true
-                } catch (e: Exception) {
-                    Log.e("WebView", "Error handling external URL: $url", e)
-                    // If no app can handle it, just let WebView try (or fail gracefully)
-                    return false
-                }
+                return false
             }
         }
 
@@ -302,23 +278,6 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.any { it == PackageManager.PERMISSION_GRANTED }) {
                 webView.reload()
             }
-        }
-    }
-}
-
-class SmsSentReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        when (resultCode) {
-            Activity.RESULT_OK ->
-                Log.d("SmsSent", "SOS SMS sent successfully")
-            SmsManager.RESULT_ERROR_GENERIC_FAILURE ->
-                Log.e("SmsSent", "SMS failed: generic failure")
-            SmsManager.RESULT_ERROR_NO_SERVICE ->
-                Log.e("SmsSent", "SMS failed: no service")
-            SmsManager.RESULT_ERROR_NULL_PDU ->
-                Log.e("SmsSent", "SMS failed: null PDU")
-            SmsManager.RESULT_ERROR_RADIO_OFF ->
-                Log.e("SmsSent", "SMS failed: radio off")
         }
     }
 }

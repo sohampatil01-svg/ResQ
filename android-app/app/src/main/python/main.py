@@ -369,24 +369,19 @@ def trigger_sos():
     lng = data.get('lng')
     msg = data.get('message', 'I need help — ResQ Emergency Alert!')
     
-    print(f"DEBUG: Trigger SOS for session {session}")
     cts = qry("SELECT * FROM sos_contacts WHERE session_id = ?", (session,))
-    print(f"DEBUG: Found {len(cts)} contacts for session {session}")
-    
     maps_link = f"https://www.google.com/maps/search/?api=1&query={lat},{lng}" if lat and lng else "Location unavailable"
     
     event_id = uid()
     qry("INSERT INTO sos_events (id, session_id, lat, lng, message, contacts_notified, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (event_id, session, lat, lng, msg, len(cts), now_ms()))
     
+    # Send real SMS via Android if running on device
     dispatched = []
     try:
         from com.resq.mobile import MainActivity
         activity = MainActivity.instance
         if activity:
-            if not cts:
-                activity.runOnUiThread(lambda: activity.sendSMS("", "DEBUG: No contacts found in DB")) # Just to trigger a toast error
-            
             for c in cts:
                 full_msg = f"🚨 ResQ SOS from {c['name']}: {msg}\n📍 Location: {maps_link}"
                 activity.sendSMS(c['phone'], full_msg)
@@ -397,15 +392,21 @@ def trigger_sos():
                     'status': 'dispatched_to_android'
                 })
         else:
-            print("DEBUG: MainActivity instance not found")
+            print("DEBUG: MainActivity instance not found, simulation mode")
     except Exception as e:
         print(f"DEBUG: SMS error: {e}")
 
-    # Fallback/Simulation
+    # Fallback/Simulation if not on android or no contacts
     if not dispatched:
-        print(f"DEBUG: SOS fallback active. Contacts: {len(cts)}")
         for c in cts:
-            print(f"DEBUG: (Fallback) {c['name']} -> {c['phone']}")
+            full_msg = f"🚨 ResQ SOS from {c['name']}: {msg}\n📍 Location: {maps_link}"
+            dispatched.append({
+                'contact': c['name'],
+                'phone': c['phone'],
+                'message': full_msg,
+                'status': 'simulated'
+            })
+            print(f"DEBUG: (Simulated) Sending SOS to {c['name']} ({c['phone']}): {full_msg}")
 
     return ok({
         'id': event_id,
@@ -439,15 +440,16 @@ def get_missing():
     data = qry(sql, params)
     return ok(data)
 
-@app.route('/api/missing-persons/<mp_id>/found', methods=['PATCH', 'POST'])
-def mark_found(mp_id):
-    qry("UPDATE missing_persons SET status = 'found', updated_at = ? WHERE id = ?", (now_ms(), mp_id))
-    return ok()
+@app.route('/api/missing-persons', methods=['POST'])
+def create_missing():
+    data = request.get_json()
+    if not data or not data.get('name'):
+        return err('Name required')
 
-@app.route('/api/checkins/<ck_id>/confirm', methods=['POST'])
-def confirm_checkin_api(ck_id):
-    qry("UPDATE checkins SET status = 'confirmed', confirmed_at = ? WHERE id = ?", (now_ms(), ck_id))
-    return ok()
+    mp_id = uid()
+    qry("INSERT INTO missing_persons (id, name, age, gender, description, last_seen_location, last_seen_lat, last_seen_lng, contact_name, contact_phone, photo_path, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (mp_id, data['name'], data.get('age'), data.get('gender', ''), data.get('description', ''), data.get('last_seen_location', ''), data.get('last_seen_lat'), data.get('last_seen_lng'), data.get('contact_name', ''), data.get('contact_phone', ''), None, 'missing', now_ms(), now_ms()))
+    return ok({'id': mp_id})
 
 @app.route('/api/safe-routes', methods=['POST'])
 def analyse_route():
