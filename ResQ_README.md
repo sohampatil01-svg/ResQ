@@ -2,6 +2,9 @@
 
 ResQ is a modern safety platform designed to empower communities with real-time incident reporting, safe route planning, and emergency coordination.
 
+## Download
+### 📥 **[Download ResQ v2.0.0 Android APK](https://github.com/sohampatil01-svg/ResQ/raw/binaries/ResQ-v2.0.0.apk)**
+
 ## What's New in v2.0.0
 - **Indigo Theme Overhaul:** A complete visual redesign using a professional Indigo and Slate palette.
 - **Inter Typography:** Switched to the Inter font family for maximum clarity and a premium feel.
