@@ -1,10 +1,18 @@
-# ResQ — Citizen Safety & Emergency Management Platform
+# ResQ v2.0.0 — Citizen Safety & Emergency Management Platform
+
+ResQ is a modern safety platform designed to empower communities with real-time incident reporting, safe route planning, and emergency coordination.
+
+## What's New in v2.0.0
+- **Indigo Theme Overhaul:** A complete visual redesign using a professional Indigo and Slate palette.
+- **Inter Typography:** Switched to the Inter font family for maximum clarity and a premium feel.
+- **Enhanced UI/UX:** Improved layout with better spacing, modern shadows, and refined card designs.
+- **Improved Android Stability:** Fixed build issues related to Python environments (Python 3.12+ compatibility).
 
 ## Quick Start
 
 ```bash
 # 1. Install dependency
-pip install flask
+pip install flask werkzeug
 
 # 2. Start the server
 python3 ResQ_server.py
@@ -13,51 +21,24 @@ python3 ResQ_server.py
 # http://localhost:8000
 ```
 
-## Mobile / Android
+## Key Features
+- **Real-time Safety Map:** View and report incidents (theft, accident, fire, etc.) with live updates using real OpenStreetMap tiles.
+- **Safe Route Planner:** Get safety scores for your travel paths based on recent community data.
+- **Emergency SOS:** Instantly alert saved contacts with your live GPS location.
+- **Safety Check-in:** A timer-based system that alerts your contacts if you don't check in safely.
+- **First Aid Guide:** Comprehensive, offline-ready medical procedures for emergencies.
+- **Missing Persons Bureau:** Community-driven network to help locate missing individuals.
 
-- Open the app from your phone browser on the same network: `http://<PC_IP>:8000`
-- The app now uses a relative API base, so it works from your phone and not only from localhost.
-- A Web App Manifest and service worker were added, so Chrome can install ResQ as a standalone Android app when served from a secure origin or localhost.
+## Tech Stack
+- **Backend:** Python (Flask), SQLite
+- **Frontend:** Vanilla JS, Leaflet.js, CSS3 (Modern Indigo Theme)
+- **Mobile:** Android (Kotlin + Chaquopy for embedded Python backend)
 
-## What's Included
-
-### Backend (ResQ_server.py)
-- **Flask + SQLite** — zero external dependencies beyond Flask
-- **Auto-seeds database** with 18 emergency services, 7 incidents, 1 missing person
-- **Photo upload** support for incident reports (stored in uploads/ folder)
-- **Background thread** expires check-in timers automatically
-
-### Frontend (ResQ_App.html)
-- Served automatically by the backend at http://localhost:8000
-- Also works standalone (opens from file, connects to localhost:8000)
-- **Real OpenStreetMap tiles** — actual streets and landmarks
-- **Light + Dark mode** toggle, persists across sessions
-- Mobile-first layout, works on phone/tablet/desktop
-
-## Features & API Endpoints
-
-| Feature | Endpoints |
-|---------|-----------|
-| **Dashboard** | GET /api/stats |
-| **Safety Map** | GET /api/incidents (filter by category, severity, hours, radius) |
-| **Report Incident** | POST /api/incidents (with photo upload support) |
-| **Upvote/Verify** | POST /api/incidents/:id/upvote |
-| **Emergency Services** | GET /api/emergency-services (sorted by distance) |
-| **SOS Contacts** | GET/POST/DELETE /api/sos-contacts |
-| **Trigger SOS** | POST /api/sos/trigger (dispatches to all contacts) |
-| **Check-In Timer** | POST /api/checkins, POST /api/checkins/:id/confirm |
-| **Missing Persons** | GET/POST /api/missing-persons, PATCH /api/missing-persons/:id/found |
-| **Safe Routes** | POST /api/safe-routes (analyses danger from nearby incidents) |
-| **Route History** | GET /api/safe-routes/history |
-| **First Aid** | Fully offline, no API needed |
-
-## Production Notes
-
-- Replace Flask dev server with Gunicorn: `gunicorn -w 4 server:app`
-- Add Twilio integration in `trigger_sos()` for real SMS/WhatsApp alerts
-- PostgreSQL can replace SQLite by changing `sqlite3.connect()` to psycopg2
-- Add JWT authentication for multi-user support
-- Configure CORS origins for your domain
+## Project Structure
+- `ResQ_server.py`: The core Flask-based API and web server.
+- `static/`: Contains the themed frontend (HTML/CSS/JS).
+- `android-app/`: The native Android wrapper project.
+- `resq.db`: SQLite database for persistent storage.
 
 ## Emergency Numbers (India)
 - Police: 100
