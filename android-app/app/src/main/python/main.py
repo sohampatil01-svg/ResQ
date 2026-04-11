@@ -383,7 +383,7 @@ def trigger_sos():
         activity = MainActivity.instance
         if activity:
             for c in cts:
-                full_msg = f"🚨 ResQ SOS from {c['name']}: {msg}\n📍 Location: {maps_link}"
+                full_msg = f"🚨 ResQ SOS!\nMessage: {msg}\n📍 Location: {maps_link}"
                 activity.sendSMS(c['phone'], full_msg)
                 dispatched.append({
                     'contact': c['name'],
@@ -450,6 +450,17 @@ def create_missing():
     qry("INSERT INTO missing_persons (id, name, age, gender, description, last_seen_location, last_seen_lat, last_seen_lng, contact_name, contact_phone, photo_path, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (mp_id, data['name'], data.get('age'), data.get('gender', ''), data.get('description', ''), data.get('last_seen_location', ''), data.get('last_seen_lat'), data.get('last_seen_lng'), data.get('contact_name', ''), data.get('contact_phone', ''), None, 'missing', now_ms(), now_ms()))
     return ok({'id': mp_id})
+
+@app.route('/api/missing-persons/<mid>/found', methods=['PATCH', 'POST'])
+def mark_found(mid):
+    qry("UPDATE missing_persons SET status='found', updated_at=? WHERE id=?", (now_ms(), mid))
+    return ok()
+
+@app.route('/api/checkins', methods=['GET'])
+def get_checkins():
+    session = request.args.get('session', 'default')
+    data = qry("SELECT * FROM checkins WHERE status='active' AND session_id=?", (session,))
+    return ok(data)
 
 @app.route('/api/safe-routes', methods=['POST'])
 def analyse_route():

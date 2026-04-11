@@ -1389,15 +1389,18 @@ function getMapTile() {
 // LOCATION
 // ══════════════════════════════════════════════
 function initLoc() {
-  navigator.geolocation?.getCurrentPosition(
-    p => {
-      loc = { lat: p.coords.latitude, lng: p.coords.longitude };
-      const txt = `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}`;
-      $('loc-txt').textContent = txt;
-      if (MAP) { MAP.setView([loc.lat, loc.lng], 14); updateUM(); }
-    },
-    () => { $('loc-txt').textContent = 'Pune (default)'; }
-  );
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      p => {
+        loc = { lat: p.coords.latitude, lng: p.coords.longitude };
+        const txt = `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}`;
+        $('loc-txt').textContent = txt;
+        if (MAP) { MAP.setView([loc.lat, loc.lng], MAP.getZoom() || 14); updateUM(); }
+      },
+      () => { if (!$('loc-txt').textContent.includes('.')) $('loc-txt').textContent = 'Pune (default)'; },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+    );
+  }
 }
 
 // ══════════════════════════════════════════════

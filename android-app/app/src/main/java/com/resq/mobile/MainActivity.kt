@@ -83,6 +83,7 @@ class MainActivity : AppCompatActivity() {
      * Called from Python via Chaquopy to send a real SMS alert
      */
     fun sendSMS(phoneNumber: String, message: String) {
+        val cleanPhone = phoneNumber.replace(Regex("[^0-9+]"), "")
         runOnUiThread {
             try {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
@@ -94,13 +95,22 @@ class MainActivity : AppCompatActivity() {
                     }
                     
                     val parts = smsManager.divideMessage(message)
-                    smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null)
                     
-                    Toast.makeText(this, "SOS Alert sent to $phoneNumber", Toast.LENGTH_SHORT).show()
+                    val sentIntent = android.content.Intent("SMS_SENT")
+                    val pendingIntent = android.app.PendingIntent.getBroadcast(this, 0, sentIntent, android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT)
+                    
+                    val sentIntents = ArrayList<android.app.PendingIntent>()
+                    for (i in parts.indices) {
+                        sentIntents.add(pendingIntent)
+                    }
+                    
+                    smsManager.sendMultipartTextMessage(cleanPhone, null, parts, sentIntents, null)
+                    
+                    Toast.makeText(this, "Attempting to send SOS to $cleanPhone in background...", Toast.LENGTH_SHORT).show()
                 } else {
                     // Fallback to Intent if permission not granted
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("smsto:$phoneNumber")
+                        data = Uri.parse("smsto:$cleanPhone")
                         putExtra("sms_body", message)
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
@@ -149,7 +159,7 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url.toString()
-                if (url.startsWith("tel:") || url.startsWith("sms:")) {
+                if (url.startsWith("tel:") || url.startsWith("sms:") || url.contains("maps.google.com") || url.contains("google.com/maps") || url.startsWith("intent:") || url.startsWith("geo:")) {
                     try {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                         startActivity(intent)

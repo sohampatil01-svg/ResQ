@@ -11,6 +11,8 @@ ResQ is a modern safety platform designed to empower communities with real-time 
 - **Enhanced UI/UX:** Improved layout with better spacing, modern shadows, and refined card designs.
 - **Improved Android Stability:** Fixed build issues related to Python environments (Python 3.12+ compatibility).
 
+📥 **[Download Latest APK (v2.1)](https://github.com/sohampatil01-svg/ResQ/releases/download/v2.1/app-debug.apk)**
+
 ## Quick Start
 
 ```bash

@@ -22,8 +22,8 @@ android {
         }
 
         python {
-            buildPython "C:/Users/athar/AppData/Local/Programs/Python/Python312/python.exe"
-            version '3.11'
+            buildPython "C:/Users/HP/AppData/Local/Programs/Python/Python310/python.exe"
+            version '3.10'
             pip {
                 install 'flask'
                 install 'werkzeug'
